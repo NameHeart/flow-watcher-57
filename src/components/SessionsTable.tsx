@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, ChevronDown, ChevronUp } from "lucide-react";
+import { Search } from "lucide-react";
 
 const STATUS_COLORS: Record<string, string> = {
   PARKED: "bg-success text-success-foreground",
@@ -43,14 +43,14 @@ export function SessionsTable({ sessions, onSelectSession }: { sessions: any[]; 
 
   return (
     <div className="rounded-xl border bg-card shadow-card">
-      <div className="p-4 border-b">
+      <div className="p-3 sm:p-4 border-b">
         <div className="flex flex-wrap items-center gap-2">
-          <div className="relative flex-1 min-w-[200px]">
+          <div className="relative flex-1 min-w-[150px]">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Search plate..." value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} className="pl-8 h-9 text-sm" />
           </div>
           <Select value={statusFilter} onValueChange={v => { setStatusFilter(v); setPage(0); }}>
-            <SelectTrigger className="w-[120px] h-9 text-sm"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectTrigger className="w-[100px] sm:w-[120px] h-9 text-xs sm:text-sm"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="PARKED">Parked</SelectItem>
@@ -59,35 +59,38 @@ export function SessionsTable({ sessions, onSelectSession }: { sessions: any[]; 
               <SelectItem value="STALE_INSIDE">Stale</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={gateFilter} onValueChange={v => { setGateFilter(v); setPage(0); }}>
-            <SelectTrigger className="w-[120px] h-9 text-sm"><SelectValue placeholder="Gate" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Gates</SelectItem>
-              <SelectItem value="NORTH">North</SelectItem>
-              <SelectItem value="SOUTH">South</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={flowFilter} onValueChange={v => { setFlowFilter(v); setPage(0); }}>
-            <SelectTrigger className="w-[120px] h-9 text-sm"><SelectValue placeholder="Flow" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Flows</SelectItem>
-              <SelectItem value="N->S">N→S</SelectItem>
-              <SelectItem value="S->N">S→N</SelectItem>
-              <SelectItem value="N->N">N→N</SelectItem>
-              <SelectItem value="S->S">S→S</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[120px] h-9 text-sm"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="recent">Most Recent</SelectItem>
-              <SelectItem value="duration">Longest</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="hidden sm:flex items-center gap-2">
+            <Select value={gateFilter} onValueChange={v => { setGateFilter(v); setPage(0); }}>
+              <SelectTrigger className="w-[120px] h-9 text-sm"><SelectValue placeholder="Gate" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Gates</SelectItem>
+                <SelectItem value="NORTH">North</SelectItem>
+                <SelectItem value="SOUTH">South</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={flowFilter} onValueChange={v => { setFlowFilter(v); setPage(0); }}>
+              <SelectTrigger className="w-[120px] h-9 text-sm"><SelectValue placeholder="Flow" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Flows</SelectItem>
+                <SelectItem value="N->S">N→S</SelectItem>
+                <SelectItem value="S->N">S→N</SelectItem>
+                <SelectItem value="N->N">N→N</SelectItem>
+                <SelectItem value="S->S">S→S</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[120px] h-9 text-sm"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="recent">Most Recent</SelectItem>
+                <SelectItem value="duration">Longest</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Desktop table */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-muted/50">
@@ -120,6 +123,32 @@ export function SessionsTable({ sessions, onSelectSession }: { sessions: any[]; 
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile card list */}
+      <div className="sm:hidden divide-y">
+        {paginated.map((s: any) => (
+          <div
+            key={s.id}
+            onClick={() => onSelectSession(s)}
+            className="px-3 py-3 hover:bg-muted/30 cursor-pointer transition-colors active:bg-muted/50"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono font-semibold text-sm">{s.plate}</span>
+              <Badge className={`${STATUS_COLORS[s.status]} text-[10px] font-medium`}>
+                {STATUS_LABELS[s.status] || s.status}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+              <span>{s.vehicleType}</span>
+              <span className="font-mono">{s.flowPattern || "—"}</span>
+              {s.durationMinutes && <span>{s.durationMinutes} min</span>}
+            </div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">
+              {format(new Date(s.entryTime), "MMM dd HH:mm")}
+            </div>
+          </div>
+        ))}
       </div>
 
       {totalPages > 1 && (

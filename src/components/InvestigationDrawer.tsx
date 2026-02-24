@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { computePlateInsights } from "@/lib/analytics";
 import { addToWatchlist, removeFromWatchlist, isOnWatchlist } from "@/lib/storage";
 import { useState, useMemo } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const STATUS_LABELS: Record<string, string> = {
   PARKED: "Parked",
@@ -26,6 +27,7 @@ export function InvestigationDrawer({
 }) {
   const [watchlistState, setWatchlistState] = useState(plate ? isOnWatchlist(plate) : false);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   const insights = useMemo(() => {
     if (!plate) return null;
@@ -54,21 +56,40 @@ export function InvestigationDrawer({
 
   return (
     <AnimatePresence>
+      {/* Backdrop */}
       <motion.div
-        initial={{ x: "100%" }}
-        animate={{ x: 0 }}
-        exit={{ x: "100%" }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 bg-black/40 z-40"
+      />
+      <motion.div
+        initial={isMobile ? { y: "100%" } : { x: "100%" }}
+        animate={isMobile ? { y: 0 } : { x: 0 }}
+        exit={isMobile ? { y: "100%" } : { x: "100%" }}
         transition={{ type: "spring", damping: 30, stiffness: 300 }}
-        className="fixed right-0 top-0 h-full w-full max-w-md bg-card border-l shadow-xl z-50 overflow-y-auto"
+        className={
+          isMobile
+            ? "fixed bottom-0 left-0 right-0 h-[85vh] bg-card border-t shadow-xl z-50 overflow-y-auto rounded-t-2xl"
+            : "fixed right-0 top-0 h-full w-full max-w-md bg-card border-l shadow-xl z-50 overflow-y-auto"
+        }
       >
+        {/* Drag handle on mobile */}
+        {isMobile && (
+          <div className="flex justify-center pt-2 pb-1 sticky top-0 bg-card z-10">
+            <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+          </div>
+        )}
+
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-card border-b p-4">
+        <div className={`sticky ${isMobile ? 'top-5' : 'top-0'} z-10 bg-card border-b p-4`}>
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-display text-lg font-bold font-mono">{plate}</h2>
+            <div className="min-w-0">
+              <h2 className="font-display text-lg font-bold font-mono truncate">{plate}</h2>
               <p className="text-xs text-muted-foreground">{insights.vehicleType} · {insights.color}</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <button onClick={toggleWatchlist} className="p-2 rounded-lg hover:bg-muted transition-colors">
                 {watchlistState ? <Star className="h-4 w-4 text-primary fill-primary" /> : <StarOff className="h-4 w-4 text-muted-foreground" />}
               </button>

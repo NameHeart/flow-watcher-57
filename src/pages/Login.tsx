@@ -22,7 +22,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl gradient-gold mx-auto mb-4 shadow-gold">
@@ -34,7 +34,7 @@ const Login = () => {
           <p className="text-sm text-muted-foreground mt-1">Vehicle Flow & Parking Analytics</p>
         </div>
 
-        <div className="rounded-2xl border bg-card p-6 shadow-card">
+        <div className="rounded-2xl border bg-card p-5 sm:p-6 shadow-card">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Username</label>
