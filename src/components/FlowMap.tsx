@@ -27,16 +27,16 @@ export function FlowMap({ flowDist }: { flowDist: any[] }) {
     <motion.div
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="rounded-xl border bg-card p-5 shadow-card"
+      className="rounded-xl border bg-card p-3 sm:p-5 shadow-card"
     >
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
         <h3 className="font-display text-sm font-semibold">Flow Map</h3>
-        <div className="flex rounded-lg border bg-muted p-0.5">
+        <div className="flex rounded-lg border bg-muted p-0.5 w-full sm:w-auto">
           {SEGMENTS.map(s => (
             <button
               key={s}
               onClick={() => setSegment(s)}
-              className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+              className={`flex-1 sm:flex-none px-2 sm:px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
                 segment === s ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -48,27 +48,27 @@ export function FlowMap({ flowDist }: { flowDist: any[] }) {
 
       <div className="relative flex flex-col items-center gap-2 py-4">
         {/* North Gate */}
-        <div className="flex items-center justify-center w-48 h-12 rounded-xl border-2 border-primary/30 bg-gold-muted">
-          <span className="font-display text-sm font-semibold">NORTH GATE</span>
+        <div className="flex items-center justify-center w-36 sm:w-48 h-10 sm:h-12 rounded-xl border-2 border-primary/30 bg-gold-muted">
+          <span className="font-display text-xs sm:text-sm font-semibold">NORTH GATE</span>
         </div>
 
         {/* Arrows N→S and S→N (vertical) */}
-        <div className="flex items-center gap-16 py-1">
+        <div className="flex items-center gap-8 sm:gap-16 py-1">
           <FlowArrow label={`N→S: ${getCount("N->S")}`} pct={pct("N->S")} direction="down" />
           <FlowArrow label={`S→N: ${getCount("S->N")}`} pct={pct("S->N")} direction="up" />
         </div>
 
         {/* Parking */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           {/* N→N left */}
           <div className="flex flex-col items-center">
             <FlowArrowHorizontal label={`N→N: ${getCount("N->N")}`} pct={pct("N->N")} />
           </div>
 
-          <div className="flex items-center justify-center w-52 h-16 rounded-xl gradient-gold-subtle border-2 border-primary/20">
+          <div className="flex items-center justify-center w-36 sm:w-52 h-12 sm:h-16 rounded-xl gradient-gold-subtle border-2 border-primary/20">
             <div className="text-center">
-              <span className="font-display text-xs font-semibold text-gold-dark block">PARKING LOT</span>
-              <span className="text-xs text-muted-foreground">3 cameras</span>
+              <span className="font-display text-[10px] sm:text-xs font-semibold text-gold-dark block">PARKING LOT</span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground">3 cameras</span>
             </div>
           </div>
 
@@ -79,14 +79,14 @@ export function FlowMap({ flowDist }: { flowDist: any[] }) {
         </div>
 
         {/* Arrows continued */}
-        <div className="flex items-center gap-16 py-1">
+        <div className="flex items-center gap-8 sm:gap-16 py-1">
           <FlowArrow label="" pct="" direction="down" />
           <FlowArrow label="" pct="" direction="up" />
         </div>
 
         {/* South Gate */}
-        <div className="flex items-center justify-center w-48 h-12 rounded-xl border-2 border-primary/30 bg-gold-muted">
-          <span className="font-display text-sm font-semibold">SOUTH GATE</span>
+        <div className="flex items-center justify-center w-36 sm:w-48 h-10 sm:h-12 rounded-xl border-2 border-primary/30 bg-gold-muted">
+          <span className="font-display text-xs sm:text-sm font-semibold">SOUTH GATE</span>
         </div>
       </div>
     </motion.div>
@@ -99,7 +99,7 @@ function FlowArrow({ label, pct, direction }: { label: string; pct: string; dire
       <TooltipTrigger asChild>
         <div className="flex flex-col items-center cursor-default">
           {label && (
-            <span className="text-xs font-medium text-muted-foreground mb-0.5">{label}</span>
+            <span className="text-[10px] sm:text-xs font-medium text-muted-foreground mb-0.5">{label}</span>
           )}
           <div className={`text-primary ${direction === "down" ? "animate-flow-down" : "animate-flow-up"}`}>
             {direction === "down" ? "↓" : "↑"}
@@ -121,7 +121,7 @@ function FlowArrowHorizontal({ label, pct }: { label: string; pct: string }) {
     <Tooltip>
       <TooltipTrigger asChild>
         <div className="flex flex-col items-center cursor-default">
-          <span className="text-xs font-medium text-muted-foreground">{label}</span>
+          <span className="text-[10px] sm:text-xs font-medium text-muted-foreground">{label}</span>
           <span className="text-primary animate-pulse-gold">↩</span>
           <span className="text-[10px] text-muted-foreground">{pct}%</span>
         </div>
