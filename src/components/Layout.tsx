@@ -5,7 +5,15 @@ import { BarChart3, Search, Star, LogOut, Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 
-export function Layout({ children, isLive, onToggleLive }: { children: ReactNode; isLive: boolean; onToggleLive: () => void }) {
+export function Layout({
+  children,
+  isLive,
+  onToggleLive,
+}: {
+  children: ReactNode;
+  isLive: boolean;
+  onToggleLive: () => void;
+}) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -29,10 +37,12 @@ export function Layout({ children, isLive, onToggleLive }: { children: ReactNode
               <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-gold">
                 <BarChart3 className="h-4 w-4 text-card" />
               </div>
-              <span className="font-display text-lg font-bold tracking-tight">VehicleFlow<span className="text-gold">PRO</span></span>
+              <span className="font-display text-lg font-bold tracking-tight">
+                Thana<span className="text-gold">City</span>
+              </span>
             </Link>
             <nav className="hidden md:flex items-center gap-1">
-              {links.map(link => (
+              {links.map((link) => (
                 <Link
                   key={link.to}
                   to={link.to}
@@ -40,7 +50,7 @@ export function Layout({ children, isLive, onToggleLive }: { children: ReactNode
                     "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
                     location.pathname === link.to
                       ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
                   )}
                 >
                   <link.icon className="h-4 w-4" />
@@ -55,7 +65,10 @@ export function Layout({ children, isLive, onToggleLive }: { children: ReactNode
               <span className="text-xs font-medium text-muted-foreground">Live</span>
               <Switch checked={isLive} onCheckedChange={onToggleLive} className="data-[state=checked]:bg-success" />
             </div>
-            <button onClick={handleLogout} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline">Logout</span>
             </button>
