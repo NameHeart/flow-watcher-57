@@ -1,38 +1,37 @@
 import { motion } from "framer-motion";
+import { Car, ParkingCircle, ArrowRightLeft, Users, Clock, TrendingUp, Camera } from "lucide-react";
+
+const kpiConfig = [
+  { key: "totalEntered", label: "Total Entered", icon: Car, format: (v) => v.toLocaleString() },
+  { key: "parked", label: "Parked", icon: ParkingCircle, format: (v) => v.toLocaleString() },
+  { key: "passedThrough", label: "Passed Through", icon: ArrowRightLeft, format: (v) => v.toLocaleString() },
+  { key: "currentlyInside", label: "Currently Inside", icon: Users, format: (v) => v.toLocaleString() },
+  { key: "totalParking", label: "Parking Hits", icon: Camera, format: (v) => v.toLocaleString() },
+  { key: "peakHour", label: "Peak Hour", icon: TrendingUp, format: (v) => v },
+];
 
 export function KPIStrip({ kpis }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {/* Primary KPI: Total Vehicles (Gate IN) */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-xl border bg-card p-6 sm:p-8 shadow-card text-center"
-      >
-        <h3 className="font-display text-xs sm:text-sm font-semibold tracking-widest uppercase text-muted-foreground">
-          Total Vehicles
-        </h3>
-        <div className="font-display text-4xl sm:text-5xl font-bold tracking-tight mt-2">
-          {kpis.totalEntered.toLocaleString()}
-        </div>
-        <p className="text-xs text-muted-foreground mt-1">Gate Entries</p>
-      </motion.div>
-
-      {/* Primary KPI: Total Parking */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.05 }}
-        className="rounded-xl border bg-card p-6 sm:p-8 shadow-card text-center"
-      >
-        <h3 className="font-display text-xs sm:text-sm font-semibold tracking-widest uppercase text-muted-foreground">
-          Total Parking Vehicles
-        </h3>
-        <div className="font-display text-4xl sm:text-5xl font-bold tracking-tight mt-2">
-          {kpis.totalParking.toLocaleString()}
-        </div>
-        <p className="text-xs text-muted-foreground mt-1">Cars Parked</p>
-      </motion.div>
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      {kpiConfig.map((cfg, i) => (
+        <motion.div
+          key={cfg.key}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.05 }}
+          className="rounded-xl border bg-card p-4 shadow-card hover:shadow-card-hover transition-shadow"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gold-muted">
+              <cfg.icon className="h-3.5 w-3.5 text-gold" />
+            </div>
+            <span className="text-xs font-medium text-muted-foreground">{cfg.label}</span>
+          </div>
+          <div className="font-display text-2xl font-bold tracking-tight">
+            {cfg.format(kpis[cfg.key])}
+          </div>
+        </motion.div>
+      ))}
     </div>
   );
 }
