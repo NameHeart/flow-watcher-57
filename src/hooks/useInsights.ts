@@ -5,7 +5,7 @@ import {
   computeRepeatVisitors, computeRankings
 } from "@/lib/analytics";
 
-export function useInsights(sessions: any[], events: any[], unlinkedParking: any[], granularity: "hourly" | "daily") {
+export function useInsights(sessions, events, unlinkedParking, granularity) {
   const kpis = useMemo(() => computeKPIs(sessions, events), [sessions, events]);
   const trends = useMemo(() => computeTrendData(sessions, granularity), [sessions, granularity]);
   const flowDist = useMemo(() => computeFlowDistribution(sessions), [sessions]);

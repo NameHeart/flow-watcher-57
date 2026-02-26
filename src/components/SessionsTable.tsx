@@ -5,21 +5,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Search } from "lucide-react";
 
-const STATUS_COLORS: Record<string, string> = {
+const STATUS_COLORS = {
   PARKED: "bg-success text-success-foreground",
   PASSED_THROUGH: "bg-info text-info-foreground",
   CURRENTLY_INSIDE: "bg-warning text-warning-foreground",
   STALE_INSIDE: "bg-destructive text-destructive-foreground",
 };
 
-const STATUS_LABELS: Record<string, string> = {
+const STATUS_LABELS = {
   PARKED: "Parked",
   PASSED_THROUGH: "Passed",
   CURRENTLY_INSIDE: "Inside",
   STALE_INSIDE: "Stale",
 };
 
-export function SessionsTable({ sessions, onSelectSession }: { sessions: any[]; onSelectSession: (s: any) => void }) {
+export function SessionsTable({ sessions, onSelectSession }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [gateFilter, setGateFilter] = useState("all");
@@ -29,10 +29,10 @@ export function SessionsTable({ sessions, onSelectSession }: { sessions: any[]; 
   const perPage = 15;
 
   let filtered = sessions;
-  if (search) filtered = filtered.filter((s: any) => s.plate.toLowerCase().includes(search.toLowerCase()));
-  if (statusFilter !== "all") filtered = filtered.filter((s: any) => s.status === statusFilter);
-  if (gateFilter !== "all") filtered = filtered.filter((s: any) => s.entryGate === gateFilter);
-  if (flowFilter !== "all") filtered = filtered.filter((s: any) => s.flowPattern === flowFilter);
+  if (search) filtered = filtered.filter(s => s.plate.toLowerCase().includes(search.toLowerCase()));
+  if (statusFilter !== "all") filtered = filtered.filter(s => s.status === statusFilter);
+  if (gateFilter !== "all") filtered = filtered.filter(s => s.entryGate === gateFilter);
+  if (flowFilter !== "all") filtered = filtered.filter(s => s.flowPattern === flowFilter);
 
   if (sortBy === "duration") {
     filtered = [...filtered].sort((a, b) => (b.durationMinutes || 0) - (a.durationMinutes || 0));
@@ -103,7 +103,7 @@ export function SessionsTable({ sessions, onSelectSession }: { sessions: any[]; 
             </tr>
           </thead>
           <tbody>
-            {paginated.map((s: any) => (
+            {paginated.map(s => (
               <tr
                 key={s.id}
                 onClick={() => onSelectSession(s)}
@@ -127,7 +127,7 @@ export function SessionsTable({ sessions, onSelectSession }: { sessions: any[]; 
 
       {/* Mobile card list */}
       <div className="sm:hidden divide-y">
-        {paginated.map((s: any) => (
+        {paginated.map(s => (
           <div
             key={s.id}
             onClick={() => onSelectSession(s)}

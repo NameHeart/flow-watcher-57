@@ -2,7 +2,7 @@ import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { Radio, Eye } from "lucide-react";
 
-export function LiveEventStream({ events, onInspect }: { events: any[]; onInspect: (plate: string) => void }) {
+export function LiveEventStream({ events, onInspect }) {
   return (
     <div className="rounded-xl border bg-card shadow-card">
       <div className="flex items-center gap-2 p-3 border-b">
@@ -12,7 +12,7 @@ export function LiveEventStream({ events, onInspect }: { events: any[]; onInspec
       </div>
       <div className="max-h-[300px] overflow-y-auto">
         <AnimatePresence initial={false}>
-          {events.slice(0, 20).map((e: any) => (
+          {events.slice(0, 20).map(e => (
             <motion.div
               key={e.id}
               initial={{ opacity: 0, x: -20 }}

@@ -27,7 +27,7 @@ const Insights = () => {
   const { sessions, unlinkedParking } = useSessions(events);
   const { alerts, vehicleTypes, repeatVisitors, rankings } = useInsights(sessions, events, unlinkedParking, "daily");
   const { isLive, toggleLive } = useLiveMode();
-  const [inspectPlate, setInspectPlate] = useState<string | null>(null);
+  const [inspectPlate, setInspectPlate] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedVehicleType, setSelectedVehicleType] = useState("all");
 
@@ -61,11 +61,10 @@ const Insights = () => {
             <TabsTrigger value="rankings" className="gap-1 sm:gap-1.5 text-xs sm:text-sm"><TrendingUp className="h-3 w-3 sm:h-3.5 sm:w-3.5" /><span className="hidden xs:inline">Rankings</span></TabsTrigger>
           </TabsList>
 
-          {/* SEARCH */}
           <TabsContent value="search" className="space-y-4 mt-4">
             <div className="relative w-full sm:max-w-md">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search plate (e.g. ABC)..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 h-10" />
+              <Input placeholder="Search plate (e.g. ABC)..." value={searchQuery} onChange={(e: any) => setSearchQuery(e.target.value)} className="pl-9 h-10" />
             </div>
             {searchResults.length > 0 && (
               <div className="grid gap-3">
@@ -82,7 +81,7 @@ const Insights = () => {
                         <span className="font-mono font-bold text-base sm:text-lg">{r.plate}</span>
                         <span className="text-xs text-muted-foreground ml-2 hidden sm:inline">{r.vehicleType} · {r.color}</span>
                       </div>
-                      <button onClick={(e) => { e.stopPropagation(); addToWatchlist(r.plate); }} className="p-1.5 rounded-lg hover:bg-muted flex-shrink-0">
+                      <button onClick={(e: any) => { e.stopPropagation(); addToWatchlist(r.plate); }} className="p-1.5 rounded-lg hover:bg-muted flex-shrink-0">
                         <Star className="h-4 w-4 text-muted-foreground" />
                       </button>
                     </div>
@@ -102,11 +101,10 @@ const Insights = () => {
               </div>
             )}
             {searchQuery.length >= 2 && searchResults.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-8">No plates found matching "{searchQuery}"</p>
+              <p className="text-sm text-muted-foreground text-center py-8">No plates found matching &quot;{searchQuery}&quot;</p>
             )}
           </TabsContent>
 
-          {/* SEGMENTS */}
           <TabsContent value="segments" className="space-y-4 mt-4">
             <Select value={selectedVehicleType} onValueChange={setSelectedVehicleType}>
               <SelectTrigger className="w-full sm:w-[200px] h-9 text-sm"><SelectValue placeholder="Vehicle Type" /></SelectTrigger>
@@ -170,7 +168,6 @@ const Insights = () => {
             </div>
           </TabsContent>
 
-          {/* REPEAT */}
           <TabsContent value="repeat" className="space-y-4 mt-4">
             <div className="rounded-xl border bg-card p-3 sm:p-4 shadow-card">
               <h3 className="font-display text-sm font-semibold mb-1">Repeat Visitors</h3>
@@ -188,7 +185,7 @@ const Insights = () => {
                       <span className="font-mono text-xs sm:text-sm font-semibold truncate min-w-0">{r.plate}</span>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <Badge variant="secondary" className="text-[10px] sm:text-xs">{r.sessionCount} sessions</Badge>
-                        <button onClick={(e) => { e.stopPropagation(); addToWatchlist(r.plate); }} className="p-1 rounded hover:bg-muted">
+                        <button onClick={(e: any) => { e.stopPropagation(); addToWatchlist(r.plate); }} className="p-1 rounded hover:bg-muted">
                           <Star className="h-3.5 w-3.5 text-muted-foreground" />
                         </button>
                       </div>
@@ -199,7 +196,6 @@ const Insights = () => {
             </div>
           </TabsContent>
 
-          {/* RANKINGS */}
           <TabsContent value="rankings" className="space-y-4 mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <RankingCard title="Top Parked (by frequency)" data={rankings.topParked} onInspect={setInspectPlate} />
@@ -216,7 +212,7 @@ const Insights = () => {
   );
 };
 
-function RankingCard({ title, data, onInspect }: { title: string; data: any[]; onInspect: (p: string) => void }) {
+function RankingCard({ title, data, onInspect }: any) {
   return (
     <div className="rounded-xl border bg-card shadow-card">
       <div className="p-3 border-b">

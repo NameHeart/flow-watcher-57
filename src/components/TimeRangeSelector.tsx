@@ -1,7 +1,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Clock } from "lucide-react";
 
-export function TimeRangeSelector({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+export function TimeRangeSelector({ value, onChange }) {
   return (
     <div className="flex items-center gap-2">
       <Clock className="h-4 w-4 text-muted-foreground" />

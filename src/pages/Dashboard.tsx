@@ -16,40 +16,38 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ChevronDown, Radio, AlertTriangle } from "lucide-react";
 
 const Dashboard = () => {
-  const [timeRange, setTimeRange] = useState<"today" | "7days" | "30days">("30days");
+  const [timeRange, setTimeRange] = useState("30days");
   const { events } = useEvents(timeRange);
   const { sessions, unlinkedParking } = useSessions(events);
-  const granularity = timeRange === "today" ? "hourly" as const : "daily" as const;
+  const granularity = timeRange === "today" ? "hourly" : "daily";
   const { kpis, trends, flowDist, gateLoad, alerts } = useInsights(sessions, events, unlinkedParking, granularity);
   const { isLive, liveEvents, toggleLive } = useLiveMode();
-  const [inspectPlate, setInspectPlate] = useState<string | null>(null);
+  const [inspectPlate, setInspectPlate] = useState(null);
   const [liveOpen, setLiveOpen] = useState(false);
   const [alertsOpen, setAlertsOpen] = useState(false);
 
-  const handleSelectSession = useCallback((s: any) => {
+  const handleSelectSession = useCallback((s) => {
     setInspectPlate(s.plate);
   }, []);
 
-  const handleInspect = useCallback((plate: string) => {
+  const handleInspect = useCallback((plate) => {
     setInspectPlate(plate);
   }, []);
 
   return (
     <Layout isLive={isLive} onToggleLive={toggleLive}>
       <div className="space-y-4">
-        {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <h1 className="font-display text-lg sm:text-xl font-bold">Dashboard</h1>
             <p className="text-xs text-muted-foreground">Real-time vehicle flow & parking analytics</p>
           </div>
-          <TimeRangeSelector value={timeRange} onChange={(v: any) => setTimeRange(v)} />
+          <TimeRangeSelector value={timeRange} onChange={(v) => setTimeRange(v)} />
         </div>
 
         <KPIStrip kpis={kpis} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Main content */}
           <div className="lg:col-span-2 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <EnteredTrendChart data={trends} />
@@ -63,15 +61,12 @@ const Dashboard = () => {
             <SessionsTable sessions={sessions} onSelectSession={handleSelectSession} />
           </div>
 
-          {/* Right sidebar - collapsible on mobile */}
           <div className="space-y-4">
-            {/* Desktop: show normally */}
             <div className="hidden lg:block space-y-4">
               {isLive && <LiveEventStream events={liveEvents} onInspect={handleInspect} />}
               <AlertsPanel alerts={alerts} onInspect={handleInspect} />
             </div>
 
-            {/* Mobile/Tablet: collapsible */}
             <div className="lg:hidden space-y-3">
               {isLive && (
                 <Collapsible open={liveOpen} onOpenChange={setLiveOpen}>

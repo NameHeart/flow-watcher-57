@@ -7,26 +7,16 @@ import { addToWatchlist, removeFromWatchlist, isOnWatchlist } from "@/lib/storag
 import { useState, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const STATUS_LABELS: Record<string, string> = {
+const STATUS_LABELS = {
   PARKED: "Parked",
   PASSED_THROUGH: "Passed",
   CURRENTLY_INSIDE: "Inside",
   STALE_INSIDE: "Stale",
 };
 
-export function InvestigationDrawer({
-  plate,
-  sessions,
-  alerts,
-  onClose,
-}: {
-  plate: string | null;
-  sessions: any[];
-  alerts: any[];
-  onClose: () => void;
-}) {
+export function InvestigationDrawer({ plate, sessions, alerts, onClose }) {
   const [watchlistState, setWatchlistState] = useState(plate ? isOnWatchlist(plate) : false);
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState(null);
   const isMobile = useIsMobile();
 
   const insights = useMemo(() => {
@@ -36,7 +26,7 @@ export function InvestigationDrawer({
 
   const plateAlerts = useMemo(() => {
     if (!plate) return [];
-    return alerts.filter((a: any) => a.plate === plate);
+    return alerts.filter(a => a.plate === plate);
   }, [plate, alerts]);
 
   if (!plate || !insights) return null;
@@ -51,12 +41,11 @@ export function InvestigationDrawer({
   };
 
   const selectedSession = selectedSessionId
-    ? insights.sessions.find((s: any) => s.id === selectedSessionId)
+    ? insights.sessions.find(s => s.id === selectedSessionId)
     : insights.sessions[0];
 
   return (
     <AnimatePresence>
-      {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -75,14 +64,12 @@ export function InvestigationDrawer({
             : "fixed right-0 top-0 h-full w-full max-w-md bg-card border-l shadow-xl z-50 overflow-y-auto"
         }
       >
-        {/* Drag handle on mobile */}
         {isMobile && (
           <div className="flex justify-center pt-2 pb-1 sticky top-0 bg-card z-10">
             <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
           </div>
         )}
 
-        {/* Header */}
         <div className={`sticky ${isMobile ? 'top-5' : 'top-0'} z-10 bg-card border-b p-4`}>
           <div className="flex items-center justify-between">
             <div className="min-w-0">
@@ -101,7 +88,6 @@ export function InvestigationDrawer({
         </div>
 
         <div className="p-4 space-y-4">
-          {/* KPIs */}
           <div className="grid grid-cols-3 gap-2">
             <MiniKPI label="Sessions" value={insights.totalSessions} />
             <MiniKPI label="Parked" value={insights.parked} />
@@ -119,14 +105,13 @@ export function InvestigationDrawer({
             </p>
           )}
 
-          {/* Alerts */}
           {plateAlerts.length > 0 && (
             <div>
               <h3 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
                 <AlertTriangle className="h-3 w-3" /> Alerts ({plateAlerts.length})
               </h3>
               <div className="space-y-1">
-                {plateAlerts.slice(0, 5).map((a: any) => (
+                {plateAlerts.slice(0, 5).map(a => (
                   <div key={a.id} className="rounded-lg bg-muted/50 px-3 py-1.5 text-xs">
                     <span className="font-medium">{a.type.replace(/_/g, " ")}</span>
                     <span className="text-muted-foreground ml-1">— {a.message}</span>
@@ -136,11 +121,10 @@ export function InvestigationDrawer({
             </div>
           )}
 
-          {/* Sessions */}
           <div>
             <h3 className="text-xs font-semibold text-muted-foreground mb-2">Recent Sessions</h3>
             <div className="space-y-1">
-              {insights.sessions.slice(0, 10).map((s: any) => (
+              {insights.sessions.slice(0, 10).map(s => (
                 <div
                   key={s.id}
                   onClick={() => setSelectedSessionId(s.id)}
@@ -161,12 +145,11 @@ export function InvestigationDrawer({
             </div>
           </div>
 
-          {/* Event Timeline */}
           {selectedSession && (
             <div>
               <h3 className="text-xs font-semibold text-muted-foreground mb-2">Event Timeline</h3>
               <div className="border-l-2 border-primary/20 ml-2 space-y-2">
-                {selectedSession.events.map((e: any, i: number) => (
+                {selectedSession.events.map((e, i) => (
                   <div key={e.id} className="relative pl-4">
                     <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-primary" />
                     <div className="text-xs">
@@ -185,7 +168,7 @@ export function InvestigationDrawer({
   );
 }
 
-function MiniKPI({ label, value }: { label: string; value: any }) {
+function MiniKPI({ label, value }) {
   return (
     <div className="rounded-lg bg-muted/50 p-2.5 text-center">
       <div className="text-[10px] text-muted-foreground">{label}</div>

@@ -2,12 +2,12 @@ import { useState, useMemo } from "react";
 import { getCachedEvents } from "@/lib/mockData";
 import { subDays, startOfDay, endOfDay } from "date-fns";
 
-export function useEvents(timeRange: "today" | "7days" | "30days" = "30days") {
+export function useEvents(timeRange = "30days") {
   const allEvents = useMemo(() => getCachedEvents(), []);
 
   const filteredEvents = useMemo(() => {
     const now = new Date();
-    let start: Date;
+    let start;
     switch (timeRange) {
       case "today":
         start = startOfDay(now);
@@ -19,7 +19,7 @@ export function useEvents(timeRange: "today" | "7days" | "30days" = "30days") {
       default:
         start = startOfDay(subDays(now, 30));
     }
-    return allEvents.filter((e: any) => new Date(e.timestamp) >= start && new Date(e.timestamp) <= now);
+    return allEvents.filter(e => new Date(e.timestamp) >= start && new Date(e.timestamp) <= now);
   }, [allEvents, timeRange]);
 
   return { events: filteredEvents, allEvents };

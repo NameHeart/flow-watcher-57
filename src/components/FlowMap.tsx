@@ -2,26 +2,26 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-const SEGMENTS = ["All Sessions", "Parked Only", "Passed Only"] as const;
+const SEGMENTS = ["All Sessions", "Parked Only", "Passed Only"];
 
-export function FlowMap({ flowDist }: { flowDist: any[] }) {
-  const [segment, setSegment] = useState<typeof SEGMENTS[number]>("All Sessions");
+export function FlowMap({ flowDist }) {
+  const [segment, setSegment] = useState("All Sessions");
 
-  const getCount = (pattern: string) => {
-    const row = flowDist.find((f: any) => f.pattern === pattern);
+  const getCount = (pattern) => {
+    const row = flowDist.find(f => f.pattern === pattern);
     if (!row) return 0;
     if (segment === "Parked Only") return row.parked;
     if (segment === "Passed Only") return row.passed;
     return row.total;
   };
 
-  const total = flowDist.reduce((sum: number, f: any) => {
+  const total = flowDist.reduce((sum, f) => {
     if (segment === "Parked Only") return sum + f.parked;
     if (segment === "Passed Only") return sum + f.passed;
     return sum + f.total;
   }, 0);
 
-  const pct = (pattern: string) => total > 0 ? ((getCount(pattern) / total) * 100).toFixed(1) : "0";
+  const pct = (pattern) => total > 0 ? ((getCount(pattern) / total) * 100).toFixed(1) : "0";
 
   return (
     <motion.div
@@ -47,20 +47,16 @@ export function FlowMap({ flowDist }: { flowDist: any[] }) {
       </div>
 
       <div className="relative flex flex-col items-center gap-2 py-4">
-        {/* North Gate */}
         <div className="flex items-center justify-center w-36 sm:w-48 h-10 sm:h-12 rounded-xl border-2 border-primary/30 bg-gold-muted">
           <span className="font-display text-xs sm:text-sm font-semibold">NORTH GATE</span>
         </div>
 
-        {/* Arrows N→S and S→N (vertical) */}
         <div className="flex items-center gap-8 sm:gap-16 py-1">
           <FlowArrow label={`N→S: ${getCount("N->S")}`} pct={pct("N->S")} direction="down" />
           <FlowArrow label={`S→N: ${getCount("S->N")}`} pct={pct("S->N")} direction="up" />
         </div>
 
-        {/* Parking */}
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* N→N left */}
           <div className="flex flex-col items-center">
             <FlowArrowHorizontal label={`N→N: ${getCount("N->N")}`} pct={pct("N->N")} />
           </div>
@@ -72,19 +68,16 @@ export function FlowMap({ flowDist }: { flowDist: any[] }) {
             </div>
           </div>
 
-          {/* S→S right */}
           <div className="flex flex-col items-center">
             <FlowArrowHorizontal label={`S→S: ${getCount("S->S")}`} pct={pct("S->S")} />
           </div>
         </div>
 
-        {/* Arrows continued */}
         <div className="flex items-center gap-8 sm:gap-16 py-1">
           <FlowArrow label="" pct="" direction="down" />
           <FlowArrow label="" pct="" direction="up" />
         </div>
 
-        {/* South Gate */}
         <div className="flex items-center justify-center w-36 sm:w-48 h-10 sm:h-12 rounded-xl border-2 border-primary/30 bg-gold-muted">
           <span className="font-display text-xs sm:text-sm font-semibold">SOUTH GATE</span>
         </div>
@@ -93,7 +86,7 @@ export function FlowMap({ flowDist }: { flowDist: any[] }) {
   );
 }
 
-function FlowArrow({ label, pct, direction }: { label: string; pct: string; direction: "up" | "down" }) {
+function FlowArrow({ label, pct, direction }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -116,7 +109,7 @@ function FlowArrow({ label, pct, direction }: { label: string; pct: string; dire
   );
 }
 
-function FlowArrowHorizontal({ label, pct }: { label: string; pct: string }) {
+function FlowArrowHorizontal({ label, pct }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>

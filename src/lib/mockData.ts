@@ -11,21 +11,21 @@ const PLATES = [
 
 const VEHICLE_TYPES = ["Sedan", "SUV", "Pickup", "Van", "Motorcycle", "Hatchback", "Truck"];
 const COLORS = ["White", "Black", "Silver", "Red", "Blue", "Gray", "Green", "Brown"];
-const LOCATIONS = ["NORTH_GATE", "SOUTH_GATE", "PARKING_1", "PARKING_2", "PARKING_3"] as const;
-const GATE_LOCATIONS = ["NORTH_GATE", "SOUTH_GATE"] as const;
-const PARKING_LOCATIONS = ["PARKING_1", "PARKING_2", "PARKING_3"] as const;
+const LOCATIONS = ["NORTH_GATE", "SOUTH_GATE", "PARKING_1", "PARKING_2", "PARKING_3"];
+const GATE_LOCATIONS = ["NORTH_GATE", "SOUTH_GATE"];
+const PARKING_LOCATIONS = ["PARKING_1", "PARKING_2", "PARKING_3"];
 
 let eventIdCounter = 0;
 
-function randomFrom(arr: readonly any[]) {
+function randomFrom(arr: any[]) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function randomBetween(min: number, max: number) {
+function randomBetween(min: any, max: any) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function generatePlateProfile(plate: string) {
+function generatePlateProfile(plate: any) {
   return {
     plate,
     vehicleType: randomFrom(VEHICLE_TYPES),
@@ -33,10 +33,10 @@ function generatePlateProfile(plate: string) {
   };
 }
 
-const plateProfiles: Record<string, any> = {};
+const plateProfiles: any = {};
 PLATES.forEach(p => { plateProfiles[p] = generatePlateProfile(p); });
 
-function makeEvent(timestamp: Date, plate: string, location: string, direction: string, confidence?: number) {
+function makeEvent(timestamp: any, plate: any, location: any, direction: any, confidence?: any) {
   const profile = plateProfiles[plate] || generatePlateProfile(plate);
   eventIdCounter++;
   return {
@@ -53,9 +53,8 @@ function makeEvent(timestamp: Date, plate: string, location: string, direction: 
   };
 }
 
-function hourlyWeight(hour: number) {
-  // Peak at 8-9am and 5-6pm
-  const weights: Record<number, number> = {
+function hourlyWeight(hour: any) {
+  const weights: any = {
     0: 0.05, 1: 0.02, 2: 0.02, 3: 0.02, 4: 0.03, 5: 0.05,
     6: 0.1, 7: 0.2, 8: 0.4, 9: 0.35, 10: 0.25, 11: 0.3,
     12: 0.35, 13: 0.3, 14: 0.25, 15: 0.2, 16: 0.3, 17: 0.4,
@@ -92,12 +91,10 @@ export function generateHistoricalEvents(days = 30) {
         const entryGate = randomFrom(GATE_LOCATIONS);
         events.push(makeEvent(entryTime, plate, entryGate, "IN"));
 
-        const willPark = Math.random() > 0.3; // 70% park
-        const isPassThrough = !willPark;
+        const willPark = Math.random() > 0.3;
 
         if (willPark) {
-          // Parking events
-          const parkDelay = randomBetween(1, 5); // minutes to reach parking
+          const parkDelay = randomBetween(1, 5);
           const parkCount = randomBetween(1, 3);
           for (let p = 0; p < parkCount; p++) {
             const parkTime = new Date(entryTime.getTime() + (parkDelay + p * 2) * 60000);
@@ -105,15 +102,13 @@ export function generateHistoricalEvents(days = 30) {
             events.push(makeEvent(parkTime, plate, randomFrom(PARKING_LOCATIONS), "INTERNAL"));
           }
 
-          // Exit after parking duration
-          const parkDuration = randomBetween(15, 240); // 15 min to 4 hours
+          const parkDuration = randomBetween(15, 240);
           const exitTime = new Date(entryTime.getTime() + (parkDelay + parkDuration) * 60000);
           if (exitTime <= now) {
             const exitGate = Math.random() > 0.4 ? (entryGate === "NORTH_GATE" ? "SOUTH_GATE" : "NORTH_GATE") : entryGate;
             events.push(makeEvent(exitTime, plate, exitGate, "OUT"));
           }
         } else {
-          // Pass through - exit quickly
           const transitTime = randomBetween(2, 8);
           const exitTime = new Date(entryTime.getTime() + transitTime * 60000);
           if (exitTime <= now) {
@@ -125,7 +120,6 @@ export function generateHistoricalEvents(days = 30) {
     }
   }
 
-  // Add some unlinked parking events
   for (let i = 0; i < 15; i++) {
     const t = new Date(now.getTime() - randomBetween(1, days * 24) * 3600000);
     const unknownPlate = `UNK-${randomBetween(1000, 9999)}`;
@@ -137,9 +131,8 @@ export function generateHistoricalEvents(days = 30) {
   return events;
 }
 
-// Live mode emitter
 let liveInterval: any = null;
-let liveCallbacks: ((event: any) => void)[] = [];
+let liveCallbacks: any[] = [];
 
 function generateLiveEvent() {
   const plate = randomFrom(PLATES);
@@ -154,7 +147,7 @@ function generateLiveEvent() {
   }
 }
 
-export function subscribeEvents(callback: (event: any) => void) {
+export function subscribeEvents(callback: any) {
   liveCallbacks.push(callback);
   if (!liveInterval) {
     liveInterval = setInterval(() => {
@@ -171,8 +164,7 @@ export function subscribeEvents(callback: (event: any) => void) {
   };
 }
 
-export function getEvents(range: { start: Date; end: Date }, filters?: any) {
-  // This would be replaced by an API call
+export function getEvents(range: any, filters?: any) {
   const allEvents = generateHistoricalEvents(30);
   let filtered = allEvents.filter(e => {
     const t = new Date(e.timestamp);
@@ -180,17 +172,16 @@ export function getEvents(range: { start: Date; end: Date }, filters?: any) {
   });
 
   if (filters) {
-    if (filters.plate) filtered = filtered.filter((e: any) => e.plate.includes(filters.plate.toUpperCase()));
-    if (filters.vehicleType) filtered = filtered.filter((e: any) => e.vehicleType === filters.vehicleType);
-    if (filters.location) filtered = filtered.filter((e: any) => e.location === filters.location);
-    if (filters.color) filtered = filtered.filter((e: any) => e.color === filters.color);
+    if (filters.plate) filtered = filtered.filter(e => e.plate.includes(filters.plate.toUpperCase()));
+    if (filters.vehicleType) filtered = filtered.filter(e => e.vehicleType === filters.vehicleType);
+    if (filters.location) filtered = filtered.filter(e => e.location === filters.location);
+    if (filters.color) filtered = filtered.filter(e => e.color === filters.color);
   }
 
   return filtered;
 }
 
-// Cached data store
-let _cachedEvents: any[] | null = null;
+let _cachedEvents: any = null;
 
 export function getCachedEvents() {
   if (!_cachedEvents) {
