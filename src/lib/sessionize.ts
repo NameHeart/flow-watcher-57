@@ -1,37 +1,43 @@
-// Sessionization: events → visit sessions
+// Sessionization: events → visit sessions (grouped by vehicleType + color)
 
 const MAX_SESSION_HOURS = 24;
 const TOLERANCE_MS = 2 * 60 * 1000;
 
-export function sessionizeEvents(events: any[]) {
+export function getVehicleIdentity(vehicleType, color) {
+  return `${color} ${vehicleType}`;
+}
+
+export function sessionizeEvents(events) {
   const sorted = [...events].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
-  const byPlate: any = {};
+  // Group by vehicleType + color identity
+  const byIdentity = {};
   sorted.forEach(e => {
-    if (!byPlate[e.plate]) byPlate[e.plate] = [];
-    byPlate[e.plate].push(e);
+    const identity = getVehicleIdentity(e.vehicleType, e.color);
+    if (!byIdentity[identity]) byIdentity[identity] = [];
+    byIdentity[identity].push(e);
   });
 
-  const sessions: any[] = [];
-  const unlinkedParking: any[] = [];
+  const sessions = [];
+  const unlinkedParking = [];
   let sessionId = 0;
 
-  Object.entries(byPlate).forEach(([plate, plateEvents]: any) => {
-    const gateEvents = plateEvents.filter((e: any) => e.location === "NORTH_GATE" || e.location === "SOUTH_GATE");
-    const parkingEvents = plateEvents.filter((e: any) => e.location.startsWith("PARKING_"));
+  Object.entries(byIdentity).forEach(([identity, identityEvents]: any) => {
+    const gateEvents = identityEvents.filter((e: any) => e.location === "NORTH_GATE" || e.location === "SOUTH_GATE");
+    const parkingEvents = identityEvents.filter((e: any) => e.location.startsWith("PARKING_"));
 
     let usedParkingIds = new Set();
     let usedGateIds = new Set();
 
-    const inEvents = gateEvents.filter((e: any) => e.direction === "IN");
-    const outEvents = gateEvents.filter((e: any) => e.direction === "OUT");
+    const inEvents = gateEvents.filter(e => e.direction === "IN");
+    const outEvents = gateEvents.filter(e => e.direction === "OUT");
 
-    inEvents.forEach((inEvent: any) => {
+    inEvents.forEach(inEvent => {
       if (usedGateIds.has(inEvent.id)) return;
 
       const inTime = new Date(inEvent.timestamp).getTime();
 
-      const outEvent = outEvents.find((o: any) => {
+      const outEvent = outEvents.find(o => {
         const oTime = new Date(o.timestamp).getTime();
         return oTime > inTime && !usedGateIds.has(o.id);
       });
@@ -41,22 +47,22 @@ export function sessionizeEvents(events: any[]) {
       const now = Date.now();
       const isStale = !outEvent && (now - inTime) > MAX_SESSION_HOURS * 3600000;
 
-      const sessionParkingEvents = parkingEvents.filter((p: any) => {
+      const sessionParkingEvents = parkingEvents.filter(p => {
         const pTime = new Date(p.timestamp).getTime();
         const start = inTime - TOLERANCE_MS;
         const end = outTime ? outTime + TOLERANCE_MS : now;
         return pTime >= start && pTime <= end && !usedParkingIds.has(p.id);
       });
 
-      sessionParkingEvents.forEach((p: any) => usedParkingIds.add(p.id));
+      sessionParkingEvents.forEach(p => usedParkingIds.add(p.id));
       usedGateIds.add(inEvent.id);
       if (outEvent) usedGateIds.add(outEvent.id);
 
-      const duplicateIns = inEvents.filter((i: any) => {
+      const duplicateIns = inEvents.filter(i => {
         const iTime = new Date(i.timestamp).getTime();
         return i.id !== inEvent.id && !usedGateIds.has(i.id) && iTime > inTime && (outTime ? iTime < outTime : true);
       });
-      duplicateIns.forEach((d: any) => usedGateIds.add(d.id));
+      duplicateIns.forEach(d => usedGateIds.add(d.id));
 
       const entryGate = inEvent.location.replace("_GATE", "");
       const exitGate = outEvent ? outEvent.location.replace("_GATE", "") : null;
@@ -74,7 +80,7 @@ export function sessionizeEvents(events: any[]) {
       sessionId++;
       sessions.push({
         id: `session-${sessionId}`,
-        plate,
+        vehicleIdentity: identity,
         vehicleType: inEvent.vehicleType,
         color: inEvent.color,
         entryGate,
@@ -86,11 +92,11 @@ export function sessionizeEvents(events: any[]) {
         durationMinutes: outTime ? Math.round((outTime - inTime) / 60000) : null,
         parkingEvents: sessionParkingEvents,
         events: [inEvent, ...sessionParkingEvents, ...(outEvent ? [outEvent] : [])],
-        confidence: Math.min(...[inEvent, ...(outEvent ? [outEvent] : [])].map((e: any) => e.confidence || 1)),
+        confidence: Math.min(...[inEvent, ...(outEvent ? [outEvent] : [])].map(e => e.confidence || 1)),
       });
     });
 
-    parkingEvents.forEach((p: any) => {
+    parkingEvents.forEach(p => {
       if (!usedParkingIds.has(p.id)) {
         unlinkedParking.push(p);
       }

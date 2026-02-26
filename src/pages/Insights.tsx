@@ -5,7 +5,7 @@ import { useSessions } from "@/hooks/useSessions";
 import { useInsights } from "@/hooks/useInsights";
 import { useLiveMode } from "@/hooks/useLiveMode";
 import { InvestigationDrawer } from "@/components/InvestigationDrawer";
-import { computePlateInsights } from "@/lib/analytics";
+import { computeVehicleInsights } from "@/lib/analytics";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Star, TrendingUp, Users, BarChart3 } from "lucide-react";
 import { addToWatchlist } from "@/lib/storage";
 import { motion } from "framer-motion";
+import { VehicleIdentityBadge } from "@/components/VehicleIdentityBadge";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend
@@ -27,23 +28,23 @@ const Insights = () => {
   const { sessions, unlinkedParking } = useSessions(events);
   const { alerts, vehicleTypes, repeatVisitors, rankings } = useInsights(sessions, events, unlinkedParking, "daily");
   const { isLive, toggleLive } = useLiveMode();
-  const [inspectPlate, setInspectPlate] = useState(null);
+  const [inspectIdentity, setInspectIdentity] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedVehicleType, setSelectedVehicleType] = useState("all");
 
   const searchResults = useMemo(() => {
     if (!searchQuery || searchQuery.length < 2) return [];
-    const q = searchQuery.toUpperCase();
-    const plates = [...new Set(sessions.map((s: any) => s.plate))].filter((p: any) => p.includes(q));
-    return plates.slice(0, 10).map((p: any) => computePlateInsights(sessions, p));
+    const q = searchQuery.toLowerCase();
+    const identities = [...new Set(sessions.map(s => s.vehicleIdentity))].filter(id => id.toLowerCase().includes(q));
+    return identities.slice(0, 10).map(id => computeVehicleInsights(sessions, id));
   }, [searchQuery, sessions]);
 
   const selectedTypeData = useMemo(() => {
     if (selectedVehicleType === "all") return vehicleTypes;
-    return vehicleTypes.filter((v: any) => v.type === selectedVehicleType);
+    return vehicleTypes.filter(v => v.type === selectedVehicleType);
   }, [vehicleTypes, selectedVehicleType]);
 
-  const vehicleTypeNames = useMemo(() => [...new Set(sessions.map((s: any) => s.vehicleType))], [sessions]);
+  const vehicleTypeNames = useMemo(() => [...new Set(sessions.map(s => s.vehicleType))], [sessions]);
 
   return (
     <Layout isLive={isLive} onToggleLive={toggleLive}>
@@ -64,24 +65,23 @@ const Insights = () => {
           <TabsContent value="search" className="space-y-4 mt-4">
             <div className="relative w-full sm:max-w-md">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search plate (e.g. ABC)..." value={searchQuery} onChange={(e: any) => setSearchQuery(e.target.value)} className="pl-9 h-10" />
+              <Input placeholder="Search vehicle (e.g. White SUV)..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 h-10" />
             </div>
             {searchResults.length > 0 && (
               <div className="grid gap-3">
-                {searchResults.map((r: any) => (
+                {searchResults.map(r => (
                   <motion.div
-                    key={r.plate}
+                    key={r.vehicleIdentity}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    onClick={() => setInspectPlate(r.plate)}
+                    onClick={() => setInspectIdentity(r.vehicleIdentity)}
                     className="rounded-xl border bg-card p-3 sm:p-4 shadow-card hover:shadow-card-hover cursor-pointer transition-shadow"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0">
-                        <span className="font-mono font-bold text-base sm:text-lg">{r.plate}</span>
-                        <span className="text-xs text-muted-foreground ml-2 hidden sm:inline">{r.vehicleType} · {r.color}</span>
+                        <VehicleIdentityBadge vehicleType={r.vehicleType} color={r.color} size="md" />
                       </div>
-                      <button onClick={(e: any) => { e.stopPropagation(); addToWatchlist(r.plate); }} className="p-1.5 rounded-lg hover:bg-muted flex-shrink-0">
+                      <button onClick={(e) => { e.stopPropagation(); addToWatchlist(r.vehicleIdentity); }} className="p-1.5 rounded-lg hover:bg-muted flex-shrink-0">
                         <Star className="h-4 w-4 text-muted-foreground" />
                       </button>
                     </div>
@@ -101,7 +101,7 @@ const Insights = () => {
               </div>
             )}
             {searchQuery.length >= 2 && searchResults.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-8">No plates found matching &quot;{searchQuery}&quot;</p>
+              <p className="text-sm text-muted-foreground text-center py-8">No vehicles found matching &quot;{searchQuery}&quot;</p>
             )}
           </TabsContent>
 
@@ -110,7 +110,7 @@ const Insights = () => {
               <SelectTrigger className="w-full sm:w-[200px] h-9 text-sm"><SelectValue placeholder="Vehicle Type" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
-                {vehicleTypeNames.map((t: any) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                {vehicleTypeNames.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
               </SelectContent>
             </Select>
 
@@ -133,8 +133,8 @@ const Insights = () => {
                 <h3 className="font-display text-xs sm:text-sm font-semibold mb-3">Type Distribution</h3>
                 <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
-                    <Pie data={vehicleTypes} dataKey="total" nameKey="type" cx="50%" cy="50%" outerRadius={75} label={(e: any) => e.type} labelLine={false}>
-                      {vehicleTypes.map((_: any, i: number) => <Cell key={i} fill={COLORS_CHART[i % COLORS_CHART.length]} />)}
+                    <Pie data={vehicleTypes} dataKey="total" nameKey="type" cx="50%" cy="50%" outerRadius={75} label={(e) => e.type} labelLine={false}>
+                      {vehicleTypes.map((_, i) => <Cell key={i} fill={COLORS_CHART[i % COLORS_CHART.length]} />)}
                     </Pie>
                     <RTooltip />
                   </PieChart>
@@ -154,7 +154,7 @@ const Insights = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {vehicleTypes.map((v: any) => (
+                  {vehicleTypes.map(v => (
                     <tr key={v.type} className="border-b hover:bg-muted/30">
                       <td className="px-3 sm:px-4 py-2.5 font-medium text-xs sm:text-sm">{v.type}</td>
                       <td className="px-3 sm:px-4 py-2.5 text-muted-foreground text-xs sm:text-sm">{v.total}</td>
@@ -171,21 +171,21 @@ const Insights = () => {
           <TabsContent value="repeat" className="space-y-4 mt-4">
             <div className="rounded-xl border bg-card p-3 sm:p-4 shadow-card">
               <h3 className="font-display text-sm font-semibold mb-1">Repeat Visitors</h3>
-              <p className="text-xs text-muted-foreground mb-3">Plates with 3+ sessions</p>
+              <p className="text-xs text-muted-foreground mb-3">Vehicle identities with 3+ sessions</p>
               {repeatVisitors.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-4 text-center">No repeat visitors found</p>
               ) : (
                 <div className="space-y-1">
-                  {repeatVisitors.map((r: any) => (
+                  {repeatVisitors.map(r => (
                     <div
-                      key={r.plate}
-                      onClick={() => setInspectPlate(r.plate)}
+                      key={r.vehicleIdentity}
+                      onClick={() => setInspectIdentity(r.vehicleIdentity)}
                       className="flex items-center justify-between px-2 sm:px-3 py-2 rounded-lg hover:bg-muted/30 cursor-pointer"
                     >
-                      <span className="font-mono text-xs sm:text-sm font-semibold truncate min-w-0">{r.plate}</span>
+                      <span className="text-xs sm:text-sm font-semibold truncate min-w-0">{r.vehicleIdentity}</span>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <Badge variant="secondary" className="text-[10px] sm:text-xs">{r.sessionCount} sessions</Badge>
-                        <button onClick={(e: any) => { e.stopPropagation(); addToWatchlist(r.plate); }} className="p-1 rounded hover:bg-muted">
+                        <button onClick={(e) => { e.stopPropagation(); addToWatchlist(r.vehicleIdentity); }} className="p-1 rounded hover:bg-muted">
                           <Star className="h-3.5 w-3.5 text-muted-foreground" />
                         </button>
                       </div>
@@ -198,31 +198,34 @@ const Insights = () => {
 
           <TabsContent value="rankings" className="space-y-4 mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <RankingCard title="Top Parked (by frequency)" data={rankings.topParked} onInspect={setInspectPlate} />
-              <RankingCard title="Top Passed Through" data={rankings.topPassed} onInspect={setInspectPlate} />
+              <RankingCard title="Top Parked (by Vehicle Type)" data={rankings.topParkedTypes} onInspect={setInspectIdentity} />
+              <RankingCard title="Top Passed Through (by Type)" data={rankings.topPassedTypes} onInspect={setInspectIdentity} />
+              <RankingCard title="Top Colors (Parked)" data={rankings.topColors} onInspect={setInspectIdentity} />
+              <RankingCard title="Most Common Vehicles" data={rankings.topIdentities} onInspect={setInspectIdentity} />
             </div>
           </TabsContent>
         </Tabs>
       </div>
 
-      {inspectPlate && (
-        <InvestigationDrawer plate={inspectPlate} sessions={sessions} alerts={alerts} onClose={() => setInspectPlate(null)} />
+      {inspectIdentity && (
+        <InvestigationDrawer vehicleIdentity={inspectIdentity} sessions={sessions} alerts={alerts} onClose={() => setInspectIdentity(null)} />
       )}
     </Layout>
   );
 };
 
-function RankingCard({ title, data, onInspect }: any) {
+function RankingCard({ title, data, onInspect }) {
   return (
     <div className="rounded-xl border bg-card shadow-card">
       <div className="p-3 border-b">
         <h3 className="font-display text-xs sm:text-sm font-semibold">{title}</h3>
       </div>
       <div className="divide-y">
-        {data.map((r: any, i: number) => (
-          <div key={r.plate} onClick={() => onInspect(r.plate)} className="flex items-center gap-3 px-3 sm:px-4 py-2.5 hover:bg-muted/30 cursor-pointer">
+        {data.map((r, i) => (
+          <div key={r.label} onClick={() => onInspect(r.label)} className="flex items-center gap-3 px-3 sm:px-4 py-2.5 hover:bg-muted/30 cursor-pointer">
+
             <span className="w-5 text-xs font-bold text-muted-foreground">#{i + 1}</span>
-            <span className="font-mono text-xs sm:text-sm font-semibold flex-1 truncate min-w-0">{r.plate}</span>
+            <span className="text-xs sm:text-sm font-semibold flex-1 truncate min-w-0">{r.label}</span>
             <Badge variant="secondary" className="text-[10px] sm:text-xs flex-shrink-0">{r.count}</Badge>
           </div>
         ))}

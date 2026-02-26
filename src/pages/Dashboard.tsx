@@ -22,16 +22,16 @@ const Dashboard = () => {
   const granularity = timeRange === "today" ? "hourly" : "daily";
   const { kpis, trends, flowDist, gateLoad, alerts } = useInsights(sessions, events, unlinkedParking, granularity);
   const { isLive, liveEvents, toggleLive } = useLiveMode();
-  const [inspectPlate, setInspectPlate] = useState(null);
+  const [inspectIdentity, setInspectIdentity] = useState(null);
   const [liveOpen, setLiveOpen] = useState(false);
   const [alertsOpen, setAlertsOpen] = useState(false);
 
   const handleSelectSession = useCallback((s) => {
-    setInspectPlate(s.plate);
+    setInspectIdentity(s.vehicleIdentity);
   }, []);
 
-  const handleInspect = useCallback((plate) => {
-    setInspectPlate(plate);
+  const handleInspect = useCallback((identity) => {
+    setInspectIdentity(identity);
   }, []);
 
   return (
@@ -105,12 +105,12 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {inspectPlate && (
+      {inspectIdentity && (
         <InvestigationDrawer
-          plate={inspectPlate}
+          vehicleIdentity={inspectIdentity}
           sessions={sessions}
           alerts={alerts}
-          onClose={() => setInspectPlate(null)}
+          onClose={() => setInspectIdentity(null)}
         />
       )}
     </Layout>

@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { AlertTriangle, Clock, HelpCircle, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { VehicleIdentityBadge } from "@/components/VehicleIdentityBadge";
 
 const ALERT_ICONS = {
   LOW_CONFIDENCE: HelpCircle,
@@ -29,13 +30,13 @@ export function AlertsPanel({ alerts, onInspect }) {
           return (
             <div
               key={a.id}
-              onClick={() => onInspect(a.plate)}
+              onClick={() => onInspect(a.vehicleIdentity)}
               className="flex items-start gap-2 px-3 py-2 border-b last:border-0 hover:bg-muted/30 cursor-pointer"
             >
               <Icon className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-muted-foreground" />
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-mono text-xs font-semibold">{a.plate}</span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <VehicleIdentityBadge vehicleType={a.vehicleType} color={a.color} size="sm" />
                   <Badge className={`${SEVERITY_COLORS[a.severity]} text-[9px] px-1 py-0`}>
                     {a.type.replace(/_/g, " ")}
                   </Badge>

@@ -1,4 +1,4 @@
-// Auth & Watchlist storage (localStorage)
+// Auth & Watchlist storage (localStorage) — vehicle identity based
 
 export function isAuthenticated() {
   return localStorage.getItem("auth_session") === "1";
@@ -18,25 +18,25 @@ export function logout() {
 
 export function getWatchlist() {
   try {
-    return JSON.parse(localStorage.getItem("watchlist") || "[]");
+    return JSON.parse(localStorage.getItem("watchlist_v2") || "[]");
   } catch {
     return [];
   }
 }
 
-export function addToWatchlist(plate) {
+export function addToWatchlist(vehicleIdentity) {
   const list = getWatchlist();
-  if (!list.includes(plate)) {
-    list.push(plate);
-    localStorage.setItem("watchlist", JSON.stringify(list));
+  if (!list.includes(vehicleIdentity)) {
+    list.push(vehicleIdentity);
+    localStorage.setItem("watchlist_v2", JSON.stringify(list));
   }
 }
 
-export function removeFromWatchlist(plate) {
-  const list = getWatchlist().filter(p => p !== plate);
-  localStorage.setItem("watchlist", JSON.stringify(list));
+export function removeFromWatchlist(vehicleIdentity) {
+  const list = getWatchlist().filter(v => v !== vehicleIdentity);
+  localStorage.setItem("watchlist_v2", JSON.stringify(list));
 }
 
-export function isOnWatchlist(plate) {
-  return getWatchlist().includes(plate);
+export function isOnWatchlist(vehicleIdentity) {
+  return getWatchlist().includes(vehicleIdentity);
 }
