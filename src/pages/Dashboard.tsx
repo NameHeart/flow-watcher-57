@@ -2,7 +2,10 @@ import { useState, useCallback } from "react";
 import { Layout } from "@/components/Layout";
 import { KPIStrip } from "@/components/KPIStrip";
 import { FlowMap } from "@/components/FlowMap";
-import { EnteredTrendChart, ParkedVsPassedChart, FlowDistributionChart, GateLoadChart } from "@/components/DashboardCharts";
+import {
+  GateInOutTrendChart, ParkingTrendChart, GateComparisonChart,
+  GateLoadChart, ParkingLoadCard, FlowDistributionChart
+} from "@/components/DashboardCharts";
 import { SessionsTable } from "@/components/SessionsTable";
 import { LiveEventStream } from "@/components/LiveEventStream";
 import { AlertsPanel } from "@/components/AlertsPanel";
@@ -20,7 +23,7 @@ const Dashboard = () => {
   const { events } = useEvents(timeRange);
   const { sessions, unlinkedParking } = useSessions(events);
   const granularity = timeRange === "today" ? "hourly" : "daily";
-  const { kpis, trends, flowDist, gateLoad, alerts } = useInsights(sessions, events, unlinkedParking, granularity);
+  const { kpis, gateTrends, parkingTrends, gateLoad, parkingLoad, flowDist, alerts } = useInsights(sessions, events, unlinkedParking, granularity);
   const { isLive, liveEvents, toggleLive } = useLiveMode();
   const [inspectIdentity, setInspectIdentity] = useState(null);
   const [liveOpen, setLiveOpen] = useState(false);
@@ -49,13 +52,20 @@ const Dashboard = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 space-y-4">
+            {/* Gate trends */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <EnteredTrendChart data={trends} />
-              <ParkedVsPassedChart data={trends} />
+              <GateInOutTrendChart data={gateTrends} />
+              <ParkingTrendChart data={parkingTrends} />
             </div>
+            {/* Gate load + parking */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FlowDistributionChart data={flowDist} />
               <GateLoadChart data={gateLoad} />
+              <ParkingLoadCard data={parkingLoad} />
+            </div>
+            {/* Gate comparison + flow distribution */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <GateComparisonChart data={gateTrends} />
+              <FlowDistributionChart data={flowDist} />
             </div>
             <FlowMap flowDist={flowDist} />
             <SessionsTable sessions={sessions} onSelectSession={handleSelectSession} />

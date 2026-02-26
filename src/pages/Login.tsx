@@ -26,7 +26,12 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <img src={logoImg} alt="Thana City Country Club" className="h-16 sm:h-20 w-auto mx-auto mb-4 object-contain" />
+          <img
+            src={logoImg}
+            alt="Thana City Country Club"
+            className="h-28 sm:h-36 w-auto mx-auto mb-5 object-contain"
+            style={{ imageRendering: "auto" }}
+          />
           <p className="text-sm text-muted-foreground mt-1">Vehicle Flow & Parking Analytics</p>
         </div>
 

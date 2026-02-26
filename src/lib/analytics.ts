@@ -1,4 +1,4 @@
-// Analytics functions — pure, backend-ready (vehicle identity based)
+// Analytics functions — pure, backend-ready (3-gate + 2-parking topology)
 
 import { format, startOfDay, startOfHour } from "date-fns";
 import { getVehicleIdentity } from "./sessionize";
@@ -16,6 +16,8 @@ export function computeKPIs(sessions: any[], events: any[]) {
     ? Math.round(parkedDurations.reduce((a, b) => a + b, 0) / parkedDurations.length)
     : 0;
 
+  const totalParking = events.filter(e => e.locationType === "PARKING").length;
+
   const hourCounts = {};
   sessions.forEach(s => {
     const h = new Date(s.entryTime).getHours();
@@ -24,24 +26,32 @@ export function computeKPIs(sessions: any[], events: any[]) {
   });
   const peakHour = Object.entries(hourCounts).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || "N/A";
 
-  return { totalEntered, parked, passedThrough, currentlyInside, avgParkedDuration, peakHour };
+  return { totalEntered, parked, passedThrough, currentlyInside, avgParkedDuration, peakHour, totalParking };
 }
 
-export function computeTrendData(sessions: any[], granularity: any) {
+export function computeGateTrends(events: any[], granularity: any) {
   const grouped = {};
 
-  sessions.forEach(s => {
-    const d = new Date(s.entryTime);
+  events.filter(e => e.locationType === "GATE").forEach(e => {
+    const d = new Date(e.timestamp);
     const key = granularity === "hourly"
       ? format(startOfHour(d), "yyyy-MM-dd HH:mm")
       : format(startOfDay(d), "yyyy-MM-dd");
 
-    if (!grouped[key]) grouped[key] = { entered: 0, parked: 0, passed: 0, northIn: 0, southIn: 0 };
-    grouped[key].entered++;
-    if (s.status === "PARKED") grouped[key].parked++;
-    if (s.status === "PASSED_THROUGH") grouped[key].passed++;
-    if (s.entryGate === "NORTH") grouped[key].northIn++;
-    if (s.entryGate === "SOUTH") grouped[key].southIn++;
+    if (!grouped[key]) grouped[key] = { totalIn: 0, totalOut: 0, gateA_in: 0, gateA_out: 0, gateB_in: 0, gateB_out: 0, gateC_in: 0, gateC_out: 0 };
+
+    const g = grouped[key];
+    if (e.direction === "IN") {
+      g.totalIn++;
+      if (e.locationId === "GATE_A") g.gateA_in++;
+      if (e.locationId === "GATE_B") g.gateB_in++;
+      if (e.locationId === "GATE_C") g.gateC_in++;
+    } else if (e.direction === "OUT") {
+      g.totalOut++;
+      if (e.locationId === "GATE_A") g.gateA_out++;
+      if (e.locationId === "GATE_B") g.gateB_out++;
+      if (e.locationId === "GATE_C") g.gateC_out++;
+    }
   });
 
   return Object.entries(grouped)
@@ -53,38 +63,74 @@ export function computeTrendData(sessions: any[], granularity: any) {
     }));
 }
 
-export function computeFlowDistribution(sessions: any[]) {
-  const flows = {
-    "N->N": { total: 0, parked: 0, passed: 0 },
-    "N->S": { total: 0, parked: 0, passed: 0 },
-    "S->N": { total: 0, parked: 0, passed: 0 },
-    "S->S": { total: 0, parked: 0, passed: 0 },
+export function computeParkingTrends(events: any[], granularity: any) {
+  const grouped = {};
+
+  events.filter(e => e.locationType === "PARKING").forEach(e => {
+    const d = new Date(e.timestamp);
+    const key = granularity === "hourly"
+      ? format(startOfHour(d), "yyyy-MM-dd HH:mm")
+      : format(startOfDay(d), "yyyy-MM-dd");
+
+    if (!grouped[key]) grouped[key] = { total: 0, parking1: 0, parking2: 0 };
+    grouped[key].total++;
+    if (e.cameraId === "PARKING_1") grouped[key].parking1++;
+    if (e.cameraId === "PARKING_2") grouped[key].parking2++;
+  });
+
+  return Object.entries(grouped)
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([key, val]: any) => ({
+      time: key,
+      label: granularity === "hourly" ? key.split(" ")[1] : format(new Date(key), "MMM dd"),
+      ...val,
+    }));
+}
+
+export function computeGateLoad(events: any[]) {
+  const gates = {
+    GATE_A: { inCount: 0, outCount: 0 },
+    GATE_B: { inCount: 0, outCount: 0 },
+    GATE_C: { inCount: 0, outCount: 0 },
   };
 
-  sessions.filter(s => s.flowPattern).forEach(s => {
-    const fp = s.flowPattern;
-    if (flows[fp]) {
-      flows[fp].total++;
-      if (s.status === "PARKED") flows[fp].parked++;
-      if (s.status === "PASSED_THROUGH") flows[fp].passed++;
+  events.filter(e => e.locationType === "GATE").forEach(e => {
+    if (gates[e.locationId]) {
+      if (e.direction === "IN") gates[e.locationId].inCount++;
+      if (e.direction === "OUT") gates[e.locationId].outCount++;
     }
   });
 
-  return Object.entries(flows).map(([pattern, counts]: any) => ({ pattern, ...counts }));
+  return [
+    { gate: "Gate A", gateId: "GATE_A", ...gates.GATE_A },
+    { gate: "Gate B", gateId: "GATE_B", ...gates.GATE_B },
+    { gate: "Gate C", gateId: "GATE_C", ...gates.GATE_C },
+  ];
 }
 
-export function computeGateLoad(sessions: any[]) {
-  const gates = { NORTH: { inCount: 0, outCount: 0 }, SOUTH: { inCount: 0, outCount: 0 } };
-  sessions.forEach(s => {
-    if (s.entryGate === "NORTH") gates.NORTH.inCount++;
-    if (s.entryGate === "SOUTH") gates.SOUTH.inCount++;
-    if (s.exitGate === "NORTH") gates.NORTH.outCount++;
-    if (s.exitGate === "SOUTH") gates.SOUTH.outCount++;
+export function computeParkingLoad(events: any[]) {
+  let parking1 = 0;
+  let parking2 = 0;
+  events.filter(e => e.locationType === "PARKING").forEach(e => {
+    if (e.cameraId === "PARKING_1") parking1++;
+    if (e.cameraId === "PARKING_2") parking2++;
   });
-  return [
-    { gate: "North Gate", inCount: gates.NORTH.inCount, outCount: gates.NORTH.outCount },
-    { gate: "South Gate", inCount: gates.SOUTH.inCount, outCount: gates.SOUTH.outCount },
-  ];
+  return { total: parking1 + parking2, parking1, parking2 };
+}
+
+export function computeFlowDistribution(sessions: any[]) {
+  const flows = {};
+
+  sessions.filter(s => s.flowPattern).forEach(s => {
+    if (!flows[s.flowPattern]) flows[s.flowPattern] = { total: 0, parked: 0, passed: 0 };
+    flows[s.flowPattern].total++;
+    if (s.status === "PARKED") flows[s.flowPattern].parked++;
+    if (s.status === "PASSED_THROUGH") flows[s.flowPattern].passed++;
+  });
+
+  return Object.entries(flows)
+    .map(([pattern, counts]: any) => ({ pattern, ...counts }))
+    .sort((a, b) => b.total - a.total);
 }
 
 export function detectAnomalies(sessions: any[], events: any[], unlinkedParking: any[], confidenceThreshold = 0.75) {
@@ -100,7 +146,7 @@ export function detectAnomalies(sessions: any[], events: any[], unlinkedParking:
       vehicleIdentity: getVehicleIdentity(e.vehicleType, e.color),
       vehicleType: e.vehicleType,
       color: e.color,
-      message: `Low confidence detection (${((e.confidence || 0) * 100).toFixed(0)}%) at ${e.location}`,
+      message: `Low confidence (${((e.confidence || 0) * 100).toFixed(0)}%) at ${e.cameraId}`,
       timestamp: e.timestamp,
       eventId: e.id,
     });
@@ -130,13 +176,13 @@ export function detectAnomalies(sessions: any[], events: any[], unlinkedParking:
       vehicleIdentity: getVehicleIdentity(e.vehicleType, e.color),
       vehicleType: e.vehicleType,
       color: e.color,
-      message: `Parking detection without active session at ${e.location}`,
+      message: `Parking detection without session at ${e.cameraId}`,
       timestamp: e.timestamp,
       eventId: e.id,
     });
   });
 
-  // Rapid re-entry by vehicle identity
+  // Rapid re-entry
   const completedByIdentity: any = {};
   sessions.filter(s => s.exitTime).forEach(s => {
     if (!completedByIdentity[s.vehicleIdentity]) completedByIdentity[s.vehicleIdentity] = [];
@@ -157,7 +203,7 @@ export function detectAnomalies(sessions: any[], events: any[], unlinkedParking:
           vehicleIdentity: identitySessions[i].vehicleIdentity,
           vehicleType: identitySessions[i].vehicleType,
           color: identitySessions[i].color,
-          message: `Re-entered within ${Math.round((nextEntry - exitTime) / 60000)} minutes`,
+          message: `Re-entered within ${Math.round((nextEntry - exitTime) / 60000)} min`,
           timestamp: identitySessions[i + 1].entryTime,
           sessionId: identitySessions[i + 1].id,
         });
@@ -248,7 +294,6 @@ export function computeRepeatVisitors(sessions: any[], minSessions = 3) {
 }
 
 export function computeRankings(sessions: any[]) {
-  // Rankings by vehicle type
   const parkedByType: any = {};
   const passedByType: any = {};
   const parkedByColor: any = {};
@@ -279,4 +324,24 @@ export function computeRankings(sessions: any[]) {
     .map(([label, count]: any) => ({ label, count }));
 
   return { topParkedTypes, topPassedTypes, topColors, topIdentities };
+}
+
+export function computeGatePeakHours(events: any[]) {
+  const gateHours: any = { GATE_A: {}, GATE_B: {}, GATE_C: {} };
+
+  events.filter(e => e.locationType === "GATE" && e.direction === "IN").forEach(e => {
+    const h = new Date(e.timestamp).getHours();
+    const key = `${h}:00`;
+    if (gateHours[e.locationId]) {
+      gateHours[e.locationId][key] = (gateHours[e.locationId][key] || 0) + 1;
+    }
+  });
+
+  const result = {};
+  Object.entries(gateHours).forEach(([gate, hours]: any) => {
+    const sorted = Object.entries(hours).sort((a: any, b: any) => b[1] - a[1]);
+    result[gate] = sorted[0] ? { hour: sorted[0][0], count: sorted[0][1] } : { hour: "N/A", count: 0 };
+  });
+
+  return result;
 }

@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
-import { Car, ParkingCircle, ArrowRightLeft, Users, Clock, TrendingUp } from "lucide-react";
+import { Car, ParkingCircle, ArrowRightLeft, Users, Clock, TrendingUp, Camera } from "lucide-react";
 
 const kpiConfig = [
   { key: "totalEntered", label: "Total Entered", icon: Car, format: (v) => v.toLocaleString() },
   { key: "parked", label: "Parked", icon: ParkingCircle, format: (v) => v.toLocaleString() },
   { key: "passedThrough", label: "Passed Through", icon: ArrowRightLeft, format: (v) => v.toLocaleString() },
   { key: "currentlyInside", label: "Currently Inside", icon: Users, format: (v) => v.toLocaleString() },
-  { key: "avgParkedDuration", label: "Avg Duration", icon: Clock, format: (v) => `${v} min` },
+  { key: "totalParking", label: "Parking Hits", icon: Camera, format: (v) => v.toLocaleString() },
   { key: "peakHour", label: "Peak Hour", icon: TrendingUp, format: (v) => v },
 ];
 
