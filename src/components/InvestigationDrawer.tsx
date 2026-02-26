@@ -2,10 +2,11 @@ import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Star, StarOff, Clock, ArrowRightLeft, ParkingCircle, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { computePlateInsights } from "@/lib/analytics";
+import { computeVehicleInsights } from "@/lib/analytics";
 import { addToWatchlist, removeFromWatchlist, isOnWatchlist } from "@/lib/storage";
 import { useState, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { VehicleIdentityBadge } from "@/components/VehicleIdentityBadge";
 
 const STATUS_LABELS = {
   PARKED: "Parked",
@@ -14,28 +15,28 @@ const STATUS_LABELS = {
   STALE_INSIDE: "Stale",
 };
 
-export function InvestigationDrawer({ plate, sessions, alerts, onClose }) {
-  const [watchlistState, setWatchlistState] = useState(plate ? isOnWatchlist(plate) : false);
+export function InvestigationDrawer({ vehicleIdentity, sessions, alerts, onClose }) {
+  const [watchlistState, setWatchlistState] = useState(vehicleIdentity ? isOnWatchlist(vehicleIdentity) : false);
   const [selectedSessionId, setSelectedSessionId] = useState(null);
   const isMobile = useIsMobile();
 
   const insights = useMemo(() => {
-    if (!plate) return null;
-    return computePlateInsights(sessions, plate);
-  }, [plate, sessions]);
+    if (!vehicleIdentity) return null;
+    return computeVehicleInsights(sessions, vehicleIdentity);
+  }, [vehicleIdentity, sessions]);
 
-  const plateAlerts = useMemo(() => {
-    if (!plate) return [];
-    return alerts.filter(a => a.plate === plate);
-  }, [plate, alerts]);
+  const vehicleAlerts = useMemo(() => {
+    if (!vehicleIdentity) return [];
+    return alerts.filter(a => a.vehicleIdentity === vehicleIdentity);
+  }, [vehicleIdentity, alerts]);
 
-  if (!plate || !insights) return null;
+  if (!vehicleIdentity || !insights) return null;
 
   const toggleWatchlist = () => {
     if (watchlistState) {
-      removeFromWatchlist(plate);
+      removeFromWatchlist(vehicleIdentity);
     } else {
-      addToWatchlist(plate);
+      addToWatchlist(vehicleIdentity);
     }
     setWatchlistState(!watchlistState);
   };
@@ -73,8 +74,10 @@ export function InvestigationDrawer({ plate, sessions, alerts, onClose }) {
         <div className={`sticky ${isMobile ? 'top-5' : 'top-0'} z-10 bg-card border-b p-4`}>
           <div className="flex items-center justify-between">
             <div className="min-w-0">
-              <h2 className="font-display text-lg font-bold font-mono truncate">{plate}</h2>
-              <p className="text-xs text-muted-foreground">{insights.vehicleType} · {insights.color}</p>
+              <h2 className="font-display text-lg font-bold">Vehicle Summary</h2>
+              <div className="mt-1">
+                <VehicleIdentityBadge vehicleType={insights.vehicleType} color={insights.color} size="md" />
+              </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <button onClick={toggleWatchlist} className="p-2 rounded-lg hover:bg-muted transition-colors">
@@ -95,7 +98,7 @@ export function InvestigationDrawer({ plate, sessions, alerts, onClose }) {
           </div>
           <div className="grid grid-cols-3 gap-2">
             <MiniKPI label="Park Rate" value={`${insights.parkedRatio}%`} />
-            <MiniKPI label="Entry" value={insights.commonEntryGate || "—"} />
+            <MiniKPI label="Avg Duration" value={insights.avgDuration ? `${insights.avgDuration}m` : "—"} />
             <MiniKPI label="Flow" value={insights.commonFlowPattern || "—"} />
           </div>
 
@@ -105,13 +108,13 @@ export function InvestigationDrawer({ plate, sessions, alerts, onClose }) {
             </p>
           )}
 
-          {plateAlerts.length > 0 && (
+          {vehicleAlerts.length > 0 && (
             <div>
               <h3 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
-                <AlertTriangle className="h-3 w-3" /> Alerts ({plateAlerts.length})
+                <AlertTriangle className="h-3 w-3" /> Alerts ({vehicleAlerts.length})
               </h3>
               <div className="space-y-1">
-                {plateAlerts.slice(0, 5).map(a => (
+                {vehicleAlerts.slice(0, 5).map(a => (
                   <div key={a.id} className="rounded-lg bg-muted/50 px-3 py-1.5 text-xs">
                     <span className="font-medium">{a.type.replace(/_/g, " ")}</span>
                     <span className="text-muted-foreground ml-1">— {a.message}</span>

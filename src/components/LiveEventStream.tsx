@@ -1,6 +1,8 @@
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { Radio, Eye } from "lucide-react";
+import { VehicleIdentityBadge } from "@/components/VehicleIdentityBadge";
+import { getVehicleIdentity } from "@/lib/sessionize";
 
 export function LiveEventStream({ events, onInspect }) {
   return (
@@ -24,13 +26,13 @@ export function LiveEventStream({ events, onInspect }) {
                 <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                   e.direction === "IN" ? "bg-success" : e.direction === "OUT" ? "bg-destructive" : "bg-warning"
                 }`} />
-                <span className="font-mono text-xs font-semibold truncate">{e.plate}</span>
+                <VehicleIdentityBadge vehicleType={e.vehicleType} color={e.color} size="sm" />
                 <span className="text-[10px] text-muted-foreground">{e.direction}</span>
                 <span className="text-[10px] text-muted-foreground hidden sm:inline">{e.location.replace("_", " ")}</span>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <span className="text-[10px] text-muted-foreground">{format(new Date(e.timestamp), "HH:mm:ss")}</span>
-                <button onClick={() => onInspect(e.plate)} className="p-1 rounded hover:bg-muted">
+                <button onClick={() => onInspect(getVehicleIdentity(e.vehicleType, e.color))} className="p-1 rounded hover:bg-muted">
                   <Eye className="h-3 w-3 text-muted-foreground" />
                 </button>
               </div>

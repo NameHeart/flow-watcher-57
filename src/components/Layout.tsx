@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { isAuthenticated, logout } from "@/lib/storage";
-import { BarChart3, Search, Star, LogOut, Radio, Menu, X } from "lucide-react";
+import { Search, LogOut, Radio, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { BarChart3 } from "lucide-react";
+import logoImg from "@/assets/logo.png";
 
 export function Layout({ children, isLive, onToggleLive }) {
   const location = useLocation();
@@ -19,7 +21,6 @@ export function Layout({ children, isLive, onToggleLive }) {
   const links = [
     { to: "/dashboard", label: "Dashboard", icon: BarChart3 },
     { to: "/insights", label: "Insights", icon: Search },
-    { to: "/watchlist", label: "Watchlist", icon: Star },
   ];
 
   return (
@@ -36,12 +37,7 @@ export function Layout({ children, isLive, onToggleLive }) {
               <SheetContent side="left" className="w-64 p-0">
                 <SheetTitle className="sr-only">Navigation</SheetTitle>
                 <div className="flex items-center gap-2 p-4 border-b">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-gold">
-                    <BarChart3 className="h-4 w-4 text-card" />
-                  </div>
-                  <span className="font-display text-lg font-bold tracking-tight">
-                    Thana<span className="text-gold">City</span>
-                  </span>
+                  <img src={logoImg} alt="Thana City Country Club" className="h-8 w-auto object-contain" />
                 </div>
                 <nav className="flex flex-col p-2 gap-1">
                   {links.map((link) => (
@@ -79,12 +75,7 @@ export function Layout({ children, isLive, onToggleLive }) {
             </Sheet>
 
             <Link to="/dashboard" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-gold">
-                <BarChart3 className="h-4 w-4 text-card" />
-              </div>
-              <span className="font-display text-lg font-bold tracking-tight hidden sm:inline">
-                Thana<span className="text-gold">City</span>
-              </span>
+              <img src={logoImg} alt="Thana City Country Club" className="h-8 sm:h-9 w-auto object-contain" />
             </Link>
             <nav className="hidden md:flex items-center gap-1">
               {links.map((link) => (

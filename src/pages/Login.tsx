@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "@/lib/storage";
 import { motion } from "framer-motion";
-import { BarChart3, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import logoImg from "@/assets/logo.png";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -25,12 +26,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl gradient-gold mx-auto mb-4 shadow-gold">
-            <BarChart3 className="h-7 w-7 text-card" />
-          </div>
-          <h1 className="font-display text-2xl font-bold tracking-tight">
-            Thana<span className="text-gold">City</span>
-          </h1>
+          <img src={logoImg} alt="Thana City Country Club" className="h-16 sm:h-20 w-auto mx-auto mb-4 object-contain" />
           <p className="text-sm text-muted-foreground mt-1">Vehicle Flow & Parking Analytics</p>
         </div>
 
