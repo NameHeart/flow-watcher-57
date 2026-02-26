@@ -26,7 +26,7 @@ export function Layout({ children, isLive, onToggleLive }) {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-md">
-        <div className="flex h-14 items-center justify-between px-3 sm:px-4 lg:px-6">
+        <div className="flex h-16 items-center justify-between px-3 sm:px-4 lg:px-6">
           <div className="flex items-center gap-3 sm:gap-6">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
@@ -37,7 +37,12 @@ export function Layout({ children, isLive, onToggleLive }) {
               <SheetContent side="left" className="w-64 p-0">
                 <SheetTitle className="sr-only">Navigation</SheetTitle>
                 <div className="flex items-center gap-2 p-4 border-b">
-                  <img src={logoImg} alt="Thana City Country Club" className="h-8 w-auto object-contain" />
+                  <img
+                    src={logoImg}
+                    alt="Thana City Country Club"
+                    className="h-12 w-auto object-contain"
+                    style={{ imageRendering: "auto" }}
+                  />
                 </div>
                 <nav className="flex flex-col p-2 gap-1">
                   {links.map((link) => (
@@ -75,7 +80,12 @@ export function Layout({ children, isLive, onToggleLive }) {
             </Sheet>
 
             <Link to="/dashboard" className="flex items-center gap-2">
-              <img src={logoImg} alt="Thana City Country Club" className="h-8 sm:h-9 w-auto object-contain" />
+              <img
+                src={logoImg}
+                alt="Thana City Country Club"
+                className="h-12 sm:h-14 lg:h-16 w-auto object-contain"
+                style={{ imageRendering: "auto" }}
+              />
             </Link>
             <nav className="hidden md:flex items-center gap-1">
               {links.map((link) => (

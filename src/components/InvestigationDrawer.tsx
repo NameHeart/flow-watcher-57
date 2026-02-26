@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Star, StarOff, Clock, ArrowRightLeft, ParkingCircle, AlertTriangle } from "lucide-react";
+import { X, Star, StarOff, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { computeVehicleInsights } from "@/lib/analytics";
 import { addToWatchlist, removeFromWatchlist, isOnWatchlist } from "@/lib/storage";
@@ -102,9 +102,16 @@ export function InvestigationDrawer({ vehicleIdentity, sessions, alerts, onClose
             <MiniKPI label="Flow" value={insights.commonFlowPattern || "—"} />
           </div>
 
+          {insights.commonEntryGate && (
+            <div className="grid grid-cols-2 gap-2">
+              <MiniKPI label="Entry Gate" value={insights.commonEntryGate?.replace("GATE_", "Gate ") || "—"} />
+              <MiniKPI label="Exit Gate" value={insights.commonExitGate?.replace("GATE_", "Gate ") || "—"} />
+            </div>
+          )}
+
           {insights.lastSeen && (
             <p className="text-xs text-muted-foreground">
-              Last seen: {format(new Date(insights.lastSeen), "MMM dd, yyyy HH:mm")} at {insights.lastLocation}
+              Last seen: {format(new Date(insights.lastSeen), "MMM dd, yyyy HH:mm")} at {insights.lastLocation?.replace("GATE_", "Gate ")}
             </p>
           )}
 
@@ -140,6 +147,7 @@ export function InvestigationDrawer({ vehicleIdentity, sessions, alerts, onClose
                     <span className="text-muted-foreground">{format(new Date(s.entryTime), "MMM dd HH:mm")}</span>
                   </div>
                   <div className="flex items-center gap-2 mt-0.5 text-muted-foreground">
+                    <span>{s.entryGate?.replace("GATE_", "Gate ") || "—"}</span>
                     <span>{s.flowPattern || "—"}</span>
                     {s.durationMinutes && <span>· {s.durationMinutes} min</span>}
                   </div>
@@ -152,12 +160,12 @@ export function InvestigationDrawer({ vehicleIdentity, sessions, alerts, onClose
             <div>
               <h3 className="text-xs font-semibold text-muted-foreground mb-2">Event Timeline</h3>
               <div className="border-l-2 border-primary/20 ml-2 space-y-2">
-                {selectedSession.events.map((e, i) => (
+                {selectedSession.events.map((e) => (
                   <div key={e.id} className="relative pl-4">
                     <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-primary" />
                     <div className="text-xs">
                       <span className="font-medium">{e.direction}</span>
-                      <span className="text-muted-foreground"> at {e.location.replace(/_/g, " ")}</span>
+                      <span className="text-muted-foreground"> at {e.cameraId?.replace(/_/g, " ")}</span>
                     </div>
                     <span className="text-[10px] text-muted-foreground">{format(new Date(e.timestamp), "HH:mm:ss")}</span>
                   </div>

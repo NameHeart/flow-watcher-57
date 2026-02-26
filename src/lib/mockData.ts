@@ -1,10 +1,16 @@
 // Mock data generator for vehicle flow & parking analytics
+// New topology: 3 gates (GATE_A, GATE_B, GATE_C) with IN/OUT cameras each + 2 parking cameras
 
 const VEHICLE_TYPES = ["Sedan", "SUV", "Pickup", "Van", "Motorcycle", "Hatchback", "Truck"];
 const COLORS = ["White", "Black", "Silver", "Red", "Blue", "Gray", "Green", "Brown"];
-const LOCATIONS = ["NORTH_GATE", "SOUTH_GATE", "PARKING_1", "PARKING_2", "PARKING_3"];
-const GATE_LOCATIONS = ["NORTH_GATE", "SOUTH_GATE"];
-const PARKING_LOCATIONS = ["PARKING_1", "PARKING_2", "PARKING_3"];
+
+const GATE_IDS = ["GATE_A", "GATE_B", "GATE_C"];
+const GATE_CAMERA_IDS = [
+  "GATE_A_IN", "GATE_A_OUT",
+  "GATE_B_IN", "GATE_B_OUT",
+  "GATE_C_IN", "GATE_C_OUT",
+];
+const PARKING_CAMERA_IDS = ["PARKING_1", "PARKING_2"];
 
 let eventIdCounter = 0;
 
@@ -16,7 +22,7 @@ function randomBetween(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// Pre-generate 30 vehicle profiles (consistent type+color combos)
+// Pre-generate 30 vehicle profiles
 const VEHICLE_PROFILES = [];
 for (let i = 0; i < 30; i++) {
   VEHICLE_PROFILES.push({
@@ -25,16 +31,35 @@ for (let i = 0; i < 30; i++) {
   });
 }
 
-function makeEvent(timestamp: any, profile: any, location: any, direction: any, confidence?: any) {
+function makeGateEvent(timestamp, profile, gateId, direction, confidence?) {
   eventIdCounter++;
+  const cameraId = `${gateId}_${direction}`;
   return {
     id: `evt-${eventIdCounter}`,
     timestamp: timestamp.toISOString(),
     color: profile.color,
     vehicleType: profile.vehicleType,
-    location,
+    locationType: "GATE",
+    locationId: gateId,
+    cameraId,
     direction,
-    cameraId: `CAM-${location}`,
+    confidence: confidence ?? (Math.random() > 0.1 ? 0.8 + Math.random() * 0.2 : 0.5 + Math.random() * 0.25),
+    imageUrl: undefined,
+  };
+}
+
+function makeParkingEvent(timestamp, profile, confidence?) {
+  eventIdCounter++;
+  const cameraId = randomFrom(PARKING_CAMERA_IDS);
+  return {
+    id: `evt-${eventIdCounter}`,
+    timestamp: timestamp.toISOString(),
+    color: profile.color,
+    vehicleType: profile.vehicleType,
+    locationType: "PARKING",
+    locationId: "PARKING",
+    cameraId,
+    direction: "INTERNAL",
     confidence: confidence ?? (Math.random() > 0.1 ? 0.8 + Math.random() * 0.2 : 0.5 + Math.random() * 0.25),
     imageUrl: undefined,
   };
@@ -48,6 +73,21 @@ function hourlyWeight(hour) {
     18: 0.35, 19: 0.2, 20: 0.15, 21: 0.1, 22: 0.08, 23: 0.06,
   };
   return weights[hour] || 0.1;
+}
+
+// Gate distribution weights (Gate A busiest, Gate C quietest)
+function pickEntryGate() {
+  const r = Math.random();
+  if (r < 0.45) return "GATE_A";
+  if (r < 0.80) return "GATE_B";
+  return "GATE_C";
+}
+
+function pickExitGate(entryGate) {
+  const r = Math.random();
+  if (r < 0.4) return entryGate; // same gate exit
+  const others = GATE_IDS.filter(g => g !== entryGate);
+  return randomFrom(others);
 }
 
 export function generateHistoricalEvents(days = 30) {
@@ -75,8 +115,8 @@ export function generateHistoricalEvents(days = 30) {
 
         if (entryTime > now) continue;
 
-        const entryGate = randomFrom(GATE_LOCATIONS);
-        events.push(makeEvent(entryTime, profile, entryGate, "IN"));
+        const entryGate = pickEntryGate();
+        events.push(makeGateEvent(entryTime, profile, entryGate, "IN"));
 
         const willPark = Math.random() > 0.3;
 
@@ -86,32 +126,32 @@ export function generateHistoricalEvents(days = 30) {
           for (let p = 0; p < parkCount; p++) {
             const parkTime = new Date(entryTime.getTime() + (parkDelay + p * 2) * 60000);
             if (parkTime > now) continue;
-            events.push(makeEvent(parkTime, profile, randomFrom(PARKING_LOCATIONS), "INTERNAL"));
+            events.push(makeParkingEvent(parkTime, profile));
           }
 
           const parkDuration = randomBetween(15, 240);
           const exitTime = new Date(entryTime.getTime() + (parkDelay + parkDuration) * 60000);
           if (exitTime <= now) {
-            const exitGate = Math.random() > 0.4 ? (entryGate === "NORTH_GATE" ? "SOUTH_GATE" : "NORTH_GATE") : entryGate;
-            events.push(makeEvent(exitTime, profile, exitGate, "OUT"));
+            const exitGate = pickExitGate(entryGate);
+            events.push(makeGateEvent(exitTime, profile, exitGate, "OUT"));
           }
         } else {
           const transitTime = randomBetween(2, 8);
           const exitTime = new Date(entryTime.getTime() + transitTime * 60000);
           if (exitTime <= now) {
-            const exitGate = Math.random() > 0.3 ? (entryGate === "NORTH_GATE" ? "SOUTH_GATE" : "NORTH_GATE") : entryGate;
-            events.push(makeEvent(exitTime, profile, exitGate, "OUT"));
+            const exitGate = pickExitGate(entryGate);
+            events.push(makeGateEvent(exitTime, profile, exitGate, "OUT"));
           }
         }
       }
     }
   }
 
-  // Add some unknown/low-confidence events
+  // Add some unknown/low-confidence parking events
   for (let i = 0; i < 15; i++) {
     const t = new Date(now.getTime() - randomBetween(1, days * 24) * 3600000);
     const unknownProfile = { vehicleType: randomFrom(VEHICLE_TYPES), color: randomFrom(COLORS) };
-    events.push(makeEvent(t, unknownProfile, randomFrom(PARKING_LOCATIONS), "INTERNAL", 0.5 + Math.random() * 0.3));
+    events.push(makeParkingEvent(t, unknownProfile, 0.5 + Math.random() * 0.3));
   }
 
   events.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
@@ -126,11 +166,11 @@ function generateLiveEvent() {
   const now = new Date();
   const isGate = Math.random() > 0.3;
   if (isGate) {
-    const gate = randomFrom(GATE_LOCATIONS);
+    const gate = randomFrom(GATE_IDS);
     const dir = Math.random() > 0.5 ? "IN" : "OUT";
-    return makeEvent(now, profile, gate, dir);
+    return makeGateEvent(now, profile, gate, dir);
   } else {
-    return makeEvent(now, profile, randomFrom(PARKING_LOCATIONS), "INTERNAL");
+    return makeParkingEvent(now, profile);
   }
 }
 
@@ -160,7 +200,7 @@ export function getEvents(range, filters) {
 
   if (filters) {
     if (filters.vehicleType) filtered = filtered.filter(e => e.vehicleType === filters.vehicleType);
-    if (filters.location) filtered = filtered.filter(e => e.location === filters.location);
+    if (filters.locationId) filtered = filtered.filter(e => e.locationId === filters.locationId);
     if (filters.color) filtered = filtered.filter(e => e.color === filters.color);
   }
 
@@ -180,4 +220,4 @@ export function clearCache() {
   _cachedEvents = null;
 }
 
-export { VEHICLE_TYPES, COLORS, LOCATIONS, GATE_LOCATIONS, PARKING_LOCATIONS };
+export { VEHICLE_TYPES, COLORS, GATE_IDS, GATE_CAMERA_IDS, PARKING_CAMERA_IDS };

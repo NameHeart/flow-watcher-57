@@ -1,4 +1,5 @@
 // Sessionization: events → visit sessions (grouped by vehicleType + color)
+// Updated for 3-gate topology (GATE_A, GATE_B, GATE_C)
 
 const MAX_SESSION_HOURS = 24;
 const TOLERANCE_MS = 2 * 60 * 1000;
@@ -23,8 +24,8 @@ export function sessionizeEvents(events) {
   let sessionId = 0;
 
   Object.entries(byIdentity).forEach(([identity, identityEvents]: any) => {
-    const gateEvents = identityEvents.filter((e: any) => e.location === "NORTH_GATE" || e.location === "SOUTH_GATE");
-    const parkingEvents = identityEvents.filter((e: any) => e.location.startsWith("PARKING_"));
+    const gateEvents = identityEvents.filter((e: any) => e.locationType === "GATE");
+    const parkingEvents = identityEvents.filter((e: any) => e.locationType === "PARKING");
 
     let usedParkingIds = new Set();
     let usedGateIds = new Set();
@@ -64,8 +65,8 @@ export function sessionizeEvents(events) {
       });
       duplicateIns.forEach(d => usedGateIds.add(d.id));
 
-      const entryGate = inEvent.location.replace("_GATE", "");
-      const exitGate = outEvent ? outEvent.location.replace("_GATE", "") : null;
+      const entryGate = inEvent.locationId; // GATE_A, GATE_B, GATE_C
+      const exitGate = outEvent ? outEvent.locationId : null;
       const hasParking = sessionParkingEvents.length > 0;
 
       let status = "CURRENTLY_INSIDE";
@@ -75,7 +76,10 @@ export function sessionizeEvents(events) {
         status = "STALE_INSIDE";
       }
 
-      const flowPattern = exitGate ? `${entryGate[0]}->${exitGate[0]}` : null;
+      // Flow pattern: e.g. "A→B", "B→C", "A→A"
+      const entryLetter = entryGate.replace("GATE_", "");
+      const exitLetter = exitGate ? exitGate.replace("GATE_", "") : null;
+      const flowPattern = exitLetter ? `${entryLetter}→${exitLetter}` : null;
 
       sessionId++;
       sessions.push({

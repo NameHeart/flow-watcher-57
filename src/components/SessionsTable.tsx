@@ -55,6 +55,7 @@ export function SessionsTable({ sessions, onSelectSession }) {
 
   const vehicleTypes: string[] = [...new Set(sessions.map((s: any) => s.vehicleType))] as string[];
   const colors: string[] = [...new Set(sessions.map((s: any) => s.color))] as string[];
+  const flowPatterns: string[] = [...new Set(sessions.map((s: any) => s.flowPattern).filter(Boolean))] as string[];
 
   return (
     <div className="rounded-xl border bg-card shadow-card">
@@ -93,18 +94,16 @@ export function SessionsTable({ sessions, onSelectSession }) {
               <SelectTrigger className="w-[120px] h-9 text-sm"><SelectValue placeholder="Gate" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Gates</SelectItem>
-                <SelectItem value="NORTH">North</SelectItem>
-                <SelectItem value="SOUTH">South</SelectItem>
+                <SelectItem value="GATE_A">Gate A</SelectItem>
+                <SelectItem value="GATE_B">Gate B</SelectItem>
+                <SelectItem value="GATE_C">Gate C</SelectItem>
               </SelectContent>
             </Select>
             <Select value={flowFilter} onValueChange={v => { setFlowFilter(v); setPage(0); }}>
               <SelectTrigger className="w-[120px] h-9 text-sm"><SelectValue placeholder="Flow" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Flows</SelectItem>
-                <SelectItem value="N->S">N→S</SelectItem>
-                <SelectItem value="S->N">S→N</SelectItem>
-                <SelectItem value="N->N">N→N</SelectItem>
-                <SelectItem value="S->S">S→S</SelectItem>
+                {flowPatterns.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={sortBy} onValueChange={setSortBy}>
@@ -125,6 +124,7 @@ export function SessionsTable({ sessions, onSelectSession }) {
             <tr className="border-b bg-muted/50">
               <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Vehicle</th>
               <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Status</th>
+              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden md:table-cell">Entry Gate</th>
               <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden md:table-cell">Flow</th>
               <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden lg:table-cell">Duration</th>
               <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Entry</th>
@@ -145,6 +145,7 @@ export function SessionsTable({ sessions, onSelectSession }) {
                     {STATUS_LABELS[s.status] || s.status}
                   </Badge>
                 </td>
+                <td className="px-4 py-2.5 hidden md:table-cell text-xs text-muted-foreground">{s.entryGate?.replace("GATE_", "Gate ") || "—"}</td>
                 <td className="px-4 py-2.5 hidden md:table-cell font-mono text-xs text-muted-foreground">{s.flowPattern || "—"}</td>
                 <td className="px-4 py-2.5 hidden lg:table-cell text-muted-foreground">{s.durationMinutes ? `${s.durationMinutes} min` : "—"}</td>
                 <td className="px-4 py-2.5 text-xs text-muted-foreground">{format(new Date(s.entryTime), "MMM dd HH:mm")}</td>
@@ -169,6 +170,7 @@ export function SessionsTable({ sessions, onSelectSession }) {
               </Badge>
             </div>
             <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+              <span>{s.entryGate?.replace("GATE_", "Gate ") || "—"}</span>
               <span className="font-mono">{s.flowPattern || "—"}</span>
               {s.durationMinutes && <span>{s.durationMinutes} min</span>}
             </div>

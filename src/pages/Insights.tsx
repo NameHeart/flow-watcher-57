@@ -16,17 +16,18 @@ import { motion } from "framer-motion";
 import { VehicleIdentityBadge } from "@/components/VehicleIdentityBadge";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip,
-  ResponsiveContainer, PieChart, Pie, Cell, Legend
+  ResponsiveContainer, PieChart, Pie, Cell, Legend, AreaChart, Area
 } from "recharts";
 
-const GOLD = "#D4AF37";
-const DARK = "#1e2a3a";
-const COLORS_CHART = ["#D4AF37", "#1e2a3a", "#E8D48B", "#94a3b8", "#22c55e", "#3b82f6", "#ef4444"];
+const GOLD = "hsl(43, 73%, 52%)";
+const DARK = "hsl(220, 20%, 12%)";
+const INFO = "hsl(210, 80%, 52%)";
+const COLORS_CHART = ["hsl(43,73%,52%)", "hsl(220,20%,12%)", "hsl(43,60%,70%)", "hsl(220,10%,46%)", "hsl(152,60%,42%)", "hsl(210,80%,52%)", "hsl(0,72%,51%)"];
 
 const Insights = () => {
   const { events } = useEvents("30days");
   const { sessions, unlinkedParking } = useSessions(events);
-  const { alerts, vehicleTypes, repeatVisitors, rankings } = useInsights(sessions, events, unlinkedParking, "daily");
+  const { alerts, vehicleTypes, repeatVisitors, rankings, gateTrends, parkingTrends, gateLoad, gatePeakHours } = useInsights(sessions, events, unlinkedParking, "daily");
   const { isLive, toggleLive } = useLiveMode();
   const [inspectIdentity, setInspectIdentity] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -51,16 +52,85 @@ const Insights = () => {
       <div className="space-y-4">
         <div>
           <h1 className="font-display text-lg sm:text-xl font-bold">Insights</h1>
-          <p className="text-xs text-muted-foreground">Deep analytics, search & rankings</p>
+          <p className="text-xs text-muted-foreground">Gate usage, parking analytics, search & rankings</p>
         </div>
 
-        <Tabs defaultValue="search">
+        <Tabs defaultValue="gates">
           <TabsList className="bg-muted w-full sm:w-auto overflow-x-auto">
+            <TabsTrigger value="gates" className="gap-1 sm:gap-1.5 text-xs sm:text-sm"><BarChart3 className="h-3 w-3 sm:h-3.5 sm:w-3.5" /><span className="hidden xs:inline">Gates</span></TabsTrigger>
             <TabsTrigger value="search" className="gap-1 sm:gap-1.5 text-xs sm:text-sm"><Search className="h-3 w-3 sm:h-3.5 sm:w-3.5" /><span className="hidden xs:inline">Search</span></TabsTrigger>
-            <TabsTrigger value="segments" className="gap-1 sm:gap-1.5 text-xs sm:text-sm"><BarChart3 className="h-3 w-3 sm:h-3.5 sm:w-3.5" /><span className="hidden xs:inline">Segments</span></TabsTrigger>
-            <TabsTrigger value="repeat" className="gap-1 sm:gap-1.5 text-xs sm:text-sm"><Users className="h-3 w-3 sm:h-3.5 sm:w-3.5" /><span className="hidden xs:inline">Repeat</span></TabsTrigger>
-            <TabsTrigger value="rankings" className="gap-1 sm:gap-1.5 text-xs sm:text-sm"><TrendingUp className="h-3 w-3 sm:h-3.5 sm:w-3.5" /><span className="hidden xs:inline">Rankings</span></TabsTrigger>
+            <TabsTrigger value="segments" className="gap-1 sm:gap-1.5 text-xs sm:text-sm"><TrendingUp className="h-3 w-3 sm:h-3.5 sm:w-3.5" /><span className="hidden xs:inline">Segments</span></TabsTrigger>
+            <TabsTrigger value="rankings" className="gap-1 sm:gap-1.5 text-xs sm:text-sm"><Star className="h-3 w-3 sm:h-3.5 sm:w-3.5" /><span className="hidden xs:inline">Rankings</span></TabsTrigger>
           </TabsList>
+
+          {/* Gates tab - IN/OUT trends per gate, peak hours, parking */}
+          <TabsContent value="gates" className="space-y-4 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Gate A/B/C IN vs OUT trends */}
+              <div className="rounded-xl border bg-card p-3 sm:p-4 shadow-card min-w-0">
+                <h3 className="font-display text-xs sm:text-sm font-semibold mb-3">Gate A/B/C IN Trends</h3>
+                <ResponsiveContainer width="100%" height={220}>
+                  <AreaChart data={gateTrends}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(40,15%,90%)" />
+                    <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                    <YAxis tick={{ fontSize: 10 }} width={30} />
+                    <RTooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+                    <Area type="monotone" dataKey="gateA_in" stroke={GOLD} fill={GOLD} fillOpacity={0.4} name="Gate A IN" />
+                    <Area type="monotone" dataKey="gateB_in" stroke={DARK} fill={DARK} fillOpacity={0.2} name="Gate B IN" />
+                    <Area type="monotone" dataKey="gateC_in" stroke={INFO} fill={INFO} fillOpacity={0.2} name="Gate C IN" />
+                    <Legend wrapperStyle={{ fontSize: 10 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="rounded-xl border bg-card p-3 sm:p-4 shadow-card min-w-0">
+                <h3 className="font-display text-xs sm:text-sm font-semibold mb-3">Parking Usage Trend</h3>
+                <ResponsiveContainer width="100%" height={220}>
+                  <AreaChart data={parkingTrends}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(40,15%,90%)" />
+                    <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                    <YAxis tick={{ fontSize: 10 }} width={30} />
+                    <RTooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+                    <Area type="monotone" dataKey="total" stroke={GOLD} fill={GOLD} fillOpacity={0.5} name="Parking" />
+                    <Legend wrapperStyle={{ fontSize: 10 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Gate load comparison */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="rounded-xl border bg-card p-3 sm:p-4 shadow-card min-w-0">
+                <h3 className="font-display text-xs sm:text-sm font-semibold mb-3">Gate Load (IN vs OUT)</h3>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={gateLoad}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(40,15%,90%)" />
+                    <XAxis dataKey="gate" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} width={30} />
+                    <RTooltip />
+                    <Bar dataKey="inCount" fill={GOLD} name="IN" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="outCount" fill={DARK} name="OUT" radius={[4, 4, 0, 0]} />
+                    <Legend wrapperStyle={{ fontSize: 10 }} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="rounded-xl border bg-card p-3 sm:p-4 shadow-card">
+                <h3 className="font-display text-xs sm:text-sm font-semibold mb-3">Peak Hours by Gate</h3>
+                <div className="space-y-3">
+                  {Object.entries(gatePeakHours || {}).map(([gate, data]: any) => (
+                    <div key={gate} className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2.5">
+                      <span className="text-sm font-medium">{gate.replace("GATE_", "Gate ")}</span>
+                      <div className="text-right">
+                        <div className="font-display text-lg font-bold text-primary">{data.hour}</div>
+                        <div className="text-[10px] text-muted-foreground">{data.count} entries</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </TabsContent>
 
           <TabsContent value="search" className="space-y-4 mt-4">
             <div className="relative w-full sm:max-w-md">
@@ -92,8 +162,8 @@ const Insights = () => {
                       <span className="text-muted-foreground">{r.parkedRatio}% rate</span>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1 text-xs text-muted-foreground">
-                      <span>Entry: {r.commonEntryGate || "—"}</span>
-                      <span>Exit: {r.commonExitGate || "—"}</span>
+                      <span>Entry: {r.commonEntryGate?.replace("GATE_", "Gate ") || "—"}</span>
+                      <span>Exit: {r.commonExitGate?.replace("GATE_", "Gate ") || "—"}</span>
                       <span>Flow: {r.commonFlowPattern || "—"}</span>
                     </div>
                   </motion.div>
@@ -119,7 +189,7 @@ const Insights = () => {
                 <h3 className="font-display text-xs sm:text-sm font-semibold mb-3">Parked vs Passed by Type</h3>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={selectedTypeData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(40,15%,90%)" />
                     <XAxis dataKey="type" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
                     <YAxis tick={{ fontSize: 10 }} width={30} />
                     <RTooltip />
@@ -168,34 +238,6 @@ const Insights = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="repeat" className="space-y-4 mt-4">
-            <div className="rounded-xl border bg-card p-3 sm:p-4 shadow-card">
-              <h3 className="font-display text-sm font-semibold mb-1">Repeat Visitors</h3>
-              <p className="text-xs text-muted-foreground mb-3">Vehicle identities with 3+ sessions</p>
-              {repeatVisitors.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-4 text-center">No repeat visitors found</p>
-              ) : (
-                <div className="space-y-1">
-                  {repeatVisitors.map(r => (
-                    <div
-                      key={r.vehicleIdentity}
-                      onClick={() => setInspectIdentity(r.vehicleIdentity)}
-                      className="flex items-center justify-between px-2 sm:px-3 py-2 rounded-lg hover:bg-muted/30 cursor-pointer"
-                    >
-                      <span className="text-xs sm:text-sm font-semibold truncate min-w-0">{r.vehicleIdentity}</span>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <Badge variant="secondary" className="text-[10px] sm:text-xs">{r.sessionCount} sessions</Badge>
-                        <button onClick={(e) => { e.stopPropagation(); addToWatchlist(r.vehicleIdentity); }} className="p-1 rounded hover:bg-muted">
-                          <Star className="h-3.5 w-3.5 text-muted-foreground" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
           <TabsContent value="rankings" className="space-y-4 mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <RankingCard title="Top Parked (by Vehicle Type)" data={rankings.topParkedTypes} onInspect={setInspectIdentity} />
@@ -223,7 +265,6 @@ function RankingCard({ title, data, onInspect }) {
       <div className="divide-y">
         {data.map((r, i) => (
           <div key={r.label} onClick={() => onInspect(r.label)} className="flex items-center gap-3 px-3 sm:px-4 py-2.5 hover:bg-muted/30 cursor-pointer">
-
             <span className="w-5 text-xs font-bold text-muted-foreground">#{i + 1}</span>
             <span className="text-xs sm:text-sm font-semibold flex-1 truncate min-w-0">{r.label}</span>
             <Badge variant="secondary" className="text-[10px] sm:text-xs flex-shrink-0">{r.count}</Badge>

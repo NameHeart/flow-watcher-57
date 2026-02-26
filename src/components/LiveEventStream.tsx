@@ -28,7 +28,7 @@ export function LiveEventStream({ events, onInspect }) {
                 }`} />
                 <VehicleIdentityBadge vehicleType={e.vehicleType} color={e.color} size="sm" />
                 <span className="text-[10px] text-muted-foreground">{e.direction}</span>
-                <span className="text-[10px] text-muted-foreground hidden sm:inline">{e.location.replace("_", " ")}</span>
+                <span className="text-[10px] text-muted-foreground hidden sm:inline">{e.cameraId?.replace(/_/g, " ")}</span>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <span className="text-[10px] text-muted-foreground">{format(new Date(e.timestamp), "HH:mm:ss")}</span>
