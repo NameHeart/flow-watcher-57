@@ -4,33 +4,32 @@ import { format, startOfDay, startOfHour, differenceInMinutes } from "date-fns";
 
 export function computeKPIs(sessions: any[], events: any[]) {
   const totalEntered = sessions.length;
-  const parked = sessions.filter((s: any) => s.status === "PARKED").length;
-  const passedThrough = sessions.filter((s: any) => s.status === "PASSED_THROUGH").length;
-  const currentlyInside = sessions.filter((s: any) => s.status === "CURRENTLY_INSIDE" || s.status === "STALE_INSIDE").length;
+  const parked = sessions.filter(s => s.status === "PARKED").length;
+  const passedThrough = sessions.filter(s => s.status === "PASSED_THROUGH").length;
+  const currentlyInside = sessions.filter(s => s.status === "CURRENTLY_INSIDE" || s.status === "STALE_INSIDE").length;
 
   const parkedDurations = sessions
-    .filter((s: any) => s.status === "PARKED" && s.durationMinutes)
-    .map((s: any) => s.durationMinutes);
+    .filter(s => s.status === "PARKED" && s.durationMinutes)
+    .map(s => s.durationMinutes);
   const avgParkedDuration = parkedDurations.length > 0
-    ? Math.round(parkedDurations.reduce((a: number, b: number) => a + b, 0) / parkedDurations.length)
+    ? Math.round(parkedDurations.reduce((a: any, b: any) => a + b, 0) / parkedDurations.length)
     : 0;
 
-  // Peak hour
-  const hourCounts: Record<string, number> = {};
-  sessions.forEach((s: any) => {
+  const hourCounts: any = {};
+  sessions.forEach(s => {
     const h = new Date(s.entryTime).getHours();
     const key = `${h}:00`;
     hourCounts[key] = (hourCounts[key] || 0) + 1;
   });
-  const peakHour = Object.entries(hourCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A";
+  const peakHour = Object.entries(hourCounts).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || "N/A";
 
   return { totalEntered, parked, passedThrough, currentlyInside, avgParkedDuration, peakHour };
 }
 
-export function computeTrendData(sessions: any[], granularity: "hourly" | "daily") {
-  const grouped: Record<string, { entered: number; parked: number; passed: number; northIn: number; southIn: number }> = {};
+export function computeTrendData(sessions: any[], granularity: any) {
+  const grouped: any = {};
 
-  sessions.forEach((s: any) => {
+  sessions.forEach(s => {
     const d = new Date(s.entryTime);
     const key = granularity === "hourly"
       ? format(startOfHour(d), "yyyy-MM-dd HH:mm")
@@ -46,7 +45,7 @@ export function computeTrendData(sessions: any[], granularity: "hourly" | "daily
 
   return Object.entries(grouped)
     .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([key, val]) => ({
+    .map(([key, val]: any) => ({
       time: key,
       label: granularity === "hourly" ? key.split(" ")[1] : format(new Date(key), "MMM dd"),
       ...val,
@@ -54,14 +53,14 @@ export function computeTrendData(sessions: any[], granularity: "hourly" | "daily
 }
 
 export function computeFlowDistribution(sessions: any[]) {
-  const flows: Record<string, { total: number; parked: number; passed: number }> = {
+  const flows: any = {
     "N->N": { total: 0, parked: 0, passed: 0 },
     "N->S": { total: 0, parked: 0, passed: 0 },
     "S->N": { total: 0, parked: 0, passed: 0 },
     "S->S": { total: 0, parked: 0, passed: 0 },
   };
 
-  sessions.filter((s: any) => s.flowPattern).forEach((s: any) => {
+  sessions.filter(s => s.flowPattern).forEach(s => {
     const fp = s.flowPattern;
     if (flows[fp]) {
       flows[fp].total++;
@@ -70,12 +69,12 @@ export function computeFlowDistribution(sessions: any[]) {
     }
   });
 
-  return Object.entries(flows).map(([pattern, counts]) => ({ pattern, ...counts }));
+  return Object.entries(flows).map(([pattern, counts]: any) => ({ pattern, ...counts }));
 }
 
 export function computeGateLoad(sessions: any[]) {
-  const gates = { NORTH: { inCount: 0, outCount: 0 }, SOUTH: { inCount: 0, outCount: 0 } };
-  sessions.forEach((s: any) => {
+  const gates: any = { NORTH: { inCount: 0, outCount: 0 }, SOUTH: { inCount: 0, outCount: 0 } };
+  sessions.forEach(s => {
     if (s.entryGate === "NORTH") gates.NORTH.inCount++;
     if (s.entryGate === "SOUTH") gates.SOUTH.inCount++;
     if (s.exitGate === "NORTH") gates.NORTH.outCount++;
@@ -91,8 +90,7 @@ export function detectAnomalies(sessions: any[], events: any[], unlinkedParking:
   const alerts: any[] = [];
   let alertId = 0;
 
-  // Low confidence
-  events.filter((e: any) => (e.confidence || 1) < confidenceThreshold).forEach((e: any) => {
+  events.filter(e => (e.confidence || 1) < confidenceThreshold).forEach(e => {
     alertId++;
     alerts.push({
       id: `alert-${alertId}`,
@@ -105,8 +103,7 @@ export function detectAnomalies(sessions: any[], events: any[], unlinkedParking:
     });
   });
 
-  // Stale inside
-  sessions.filter((s: any) => s.status === "STALE_INSIDE").forEach((s: any) => {
+  sessions.filter(s => s.status === "STALE_INSIDE").forEach(s => {
     alertId++;
     alerts.push({
       id: `alert-${alertId}`,
@@ -119,8 +116,7 @@ export function detectAnomalies(sessions: any[], events: any[], unlinkedParking:
     });
   });
 
-  // Unlinked parking
-  unlinkedParking.forEach((e: any) => {
+  unlinkedParking.forEach(e => {
     alertId++;
     alerts.push({
       id: `alert-${alertId}`,
@@ -133,9 +129,8 @@ export function detectAnomalies(sessions: any[], events: any[], unlinkedParking:
     });
   });
 
-  // Rapid reentry
-  const completedByPlate: Record<string, any[]> = {};
-  sessions.filter((s: any) => s.exitTime).forEach((s: any) => {
+  const completedByPlate: any = {};
+  sessions.filter(s => s.exitTime).forEach(s => {
     if (!completedByPlate[s.plate]) completedByPlate[s.plate] = [];
     completedByPlate[s.plate].push(s);
   });
@@ -164,17 +159,17 @@ export function detectAnomalies(sessions: any[], events: any[], unlinkedParking:
   return alerts;
 }
 
-export function computePlateInsights(sessions: any[], plate: string) {
-  const plateSessions = sessions.filter((s: any) => s.plate === plate);
-  const parked = plateSessions.filter((s: any) => s.status === "PARKED").length;
-  const passed = plateSessions.filter((s: any) => s.status === "PASSED_THROUGH").length;
+export function computePlateInsights(sessions: any[], plate: any) {
+  const plateSessions = sessions.filter(s => s.plate === plate);
+  const parked = plateSessions.filter(s => s.status === "PARKED").length;
+  const passed = plateSessions.filter(s => s.status === "PASSED_THROUGH").length;
   const total = plateSessions.length;
   const ratio = total > 0 ? ((parked / total) * 100).toFixed(0) : "0";
 
   const lastSession = plateSessions[0];
-  const commonEntry = mode(plateSessions.map((s: any) => s.entryGate).filter(Boolean));
-  const commonExit = mode(plateSessions.map((s: any) => s.exitGate).filter(Boolean));
-  const commonFlow = mode(plateSessions.map((s: any) => s.flowPattern).filter(Boolean));
+  const commonEntry = mode(plateSessions.map(s => s.entryGate).filter(Boolean));
+  const commonExit = mode(plateSessions.map(s => s.exitGate).filter(Boolean));
+  const commonFlow = mode(plateSessions.map(s => s.flowPattern).filter(Boolean));
 
   return {
     plate,
@@ -193,17 +188,17 @@ export function computePlateInsights(sessions: any[], plate: string) {
   };
 }
 
-function mode(arr: string[]) {
+function mode(arr: any[]) {
   if (arr.length === 0) return null;
-  const counts: Record<string, number> = {};
+  const counts: any = {};
   arr.forEach(v => { counts[v] = (counts[v] || 0) + 1; });
-  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+  return Object.entries(counts).sort((a: any, b: any) => b[1] - a[1])[0][0];
 }
 
 export function computeVehicleTypeSegmentation(sessions: any[]) {
-  const byType: Record<string, { parked: number; passed: number; total: number; durations: number[] }> = {};
+  const byType: any = {};
 
-  sessions.forEach((s: any) => {
+  sessions.forEach(s => {
     const t = s.vehicleType || "Unknown";
     if (!byType[t]) byType[t] = { parked: 0, passed: 0, total: 0, durations: [] };
     byType[t].total++;
@@ -214,40 +209,40 @@ export function computeVehicleTypeSegmentation(sessions: any[]) {
     if (s.status === "PASSED_THROUGH") byType[t].passed++;
   });
 
-  return Object.entries(byType).map(([type, data]) => ({
+  return Object.entries(byType).map(([type, data]: any) => ({
     type,
     ...data,
     avgDuration: data.durations.length > 0
-      ? Math.round(data.durations.reduce((a, b) => a + b, 0) / data.durations.length)
+      ? Math.round(data.durations.reduce((a: any, b: any) => a + b, 0) / data.durations.length)
       : 0,
   }));
 }
 
 export function computeRepeatVisitors(sessions: any[], minSessions = 3) {
-  const byPlate: Record<string, number> = {};
-  sessions.forEach((s: any) => {
+  const byPlate: any = {};
+  sessions.forEach(s => {
     byPlate[s.plate] = (byPlate[s.plate] || 0) + 1;
   });
 
   return Object.entries(byPlate)
-    .filter(([_, count]) => count >= minSessions)
-    .sort((a, b) => b[1] - a[1])
-    .map(([plate, count]) => ({ plate, sessionCount: count }));
+    .filter(([_, count]: any) => count >= minSessions)
+    .sort((a: any, b: any) => b[1] - a[1])
+    .map(([plate, count]: any) => ({ plate, sessionCount: count }));
 }
 
 export function computeRankings(sessions: any[]) {
-  const parkedFreq: Record<string, number> = {};
-  const passedFreq: Record<string, number> = {};
+  const parkedFreq: any = {};
+  const passedFreq: any = {};
 
-  sessions.forEach((s: any) => {
+  sessions.forEach(s => {
     if (s.status === "PARKED") parkedFreq[s.plate] = (parkedFreq[s.plate] || 0) + 1;
     if (s.status === "PASSED_THROUGH") passedFreq[s.plate] = (passedFreq[s.plate] || 0) + 1;
   });
 
-  const topParked = Object.entries(parkedFreq).sort((a, b) => b[1] - a[1]).slice(0, 10)
-    .map(([plate, count]) => ({ plate, count }));
-  const topPassed = Object.entries(passedFreq).sort((a, b) => b[1] - a[1]).slice(0, 10)
-    .map(([plate, count]) => ({ plate, count }));
+  const topParked = Object.entries(parkedFreq).sort((a: any, b: any) => b[1] - a[1]).slice(0, 10)
+    .map(([plate, count]: any) => ({ plate, count }));
+  const topPassed = Object.entries(passedFreq).sort((a: any, b: any) => b[1] - a[1]).slice(0, 10)
+    .map(([plate, count]: any) => ({ plate, count }));
 
   return { topParked, topPassed };
 }

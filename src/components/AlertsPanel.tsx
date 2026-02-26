@@ -2,20 +2,20 @@ import { format } from "date-fns";
 import { AlertTriangle, Clock, HelpCircle, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-const ALERT_ICONS: Record<string, any> = {
+const ALERT_ICONS = {
   LOW_CONFIDENCE: HelpCircle,
   STALE_INSIDE: Clock,
   UNLINKED_PARKING: AlertTriangle,
   RAPID_REENTRY: RotateCcw,
 };
 
-const SEVERITY_COLORS: Record<string, string> = {
+const SEVERITY_COLORS = {
   error: "bg-destructive text-destructive-foreground",
   warning: "bg-warning text-warning-foreground",
   info: "bg-info text-info-foreground",
 };
 
-export function AlertsPanel({ alerts, onInspect }: { alerts: any[]; onInspect: (plate: string) => void }) {
+export function AlertsPanel({ alerts, onInspect }) {
   return (
     <div className="rounded-xl border bg-card shadow-card">
       <div className="flex items-center gap-2 p-3 border-b">
@@ -24,7 +24,7 @@ export function AlertsPanel({ alerts, onInspect }: { alerts: any[]; onInspect: (
         <Badge variant="secondary" className="text-[10px] ml-auto">{alerts.length}</Badge>
       </div>
       <div className="max-h-[300px] overflow-y-auto">
-        {alerts.slice(0, 15).map((a: any) => {
+        {alerts.slice(0, 15).map(a => {
           const Icon = ALERT_ICONS[a.type] || AlertTriangle;
           return (
             <div

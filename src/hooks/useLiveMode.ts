@@ -3,7 +3,7 @@ import { subscribeEvents } from "@/lib/mockData";
 
 export function useLiveMode() {
   const [isLive, setIsLive] = useState(false);
-  const [liveEvents, setLiveEvents] = useState<any[]>([]);
+  const [liveEvents, setLiveEvents] = useState([]);
   const maxEvents = 100;
 
   useEffect(() => {

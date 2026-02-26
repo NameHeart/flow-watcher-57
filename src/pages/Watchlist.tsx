@@ -17,7 +17,7 @@ const Watchlist = () => {
   const { events } = useEvents("30days");
   const { sessions, unlinkedParking } = useSessions(events);
   const { alerts } = useInsights(sessions, events, unlinkedParking, "daily");
-  const [inspectPlate, setInspectPlate] = useState<string | null>(null);
+  const [inspectPlate, setInspectPlate] = useState(null);
   const [, forceUpdate] = useState(0);
 
   const watchlist = getWatchlist();
@@ -25,12 +25,12 @@ const Watchlist = () => {
   const watchlistData = useMemo(() => {
     return watchlist.map(plate => {
       const insights = computePlateInsights(sessions, plate);
-      const plateAlerts = alerts.filter((a: any) => a.plate === plate);
+      const plateAlerts = alerts.filter(a => a.plate === plate);
       return { ...insights, alertCount: plateAlerts.length };
     });
   }, [watchlist, sessions, alerts]);
 
-  const handleRemove = (plate: string) => {
+  const handleRemove = (plate) => {
     removeFromWatchlist(plate);
     forceUpdate(n => n + 1);
   };
@@ -52,7 +52,7 @@ const Watchlist = () => {
           </div>
         ) : (
           <div className="grid gap-3">
-            {watchlistData.map((d: any) => (
+            {watchlistData.map(d => (
               <motion.div
                 key={d.plate}
                 initial={{ opacity: 0, y: 10 }}

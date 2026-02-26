@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { isAuthenticated, logout } from "@/lib/storage";
 import { BarChart3, Search, Star, LogOut, Radio, Menu, X } from "lucide-react";
@@ -6,15 +6,7 @@ import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 
-export function Layout({
-  children,
-  isLive,
-  onToggleLive,
-}: {
-  children: ReactNode;
-  isLive: boolean;
-  onToggleLive: () => void;
-}) {
+export function Layout({ children, isLive, onToggleLive }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -35,7 +27,6 @@ export function Layout({
       <header className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-md">
         <div className="flex h-14 items-center justify-between px-3 sm:px-4 lg:px-6">
           <div className="flex items-center gap-3 sm:gap-6">
-            {/* Mobile hamburger */}
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
                 <button className="p-1.5 rounded-lg hover:bg-muted md:hidden">

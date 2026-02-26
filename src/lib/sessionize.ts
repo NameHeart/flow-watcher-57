@@ -1,14 +1,12 @@
 // Sessionization: events → visit sessions
 
 const MAX_SESSION_HOURS = 24;
-const TOLERANCE_MS = 2 * 60 * 1000; // 2 minutes
+const TOLERANCE_MS = 2 * 60 * 1000;
 
 export function sessionizeEvents(events: any[]) {
-  // Sort by timestamp
   const sorted = [...events].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
-  // Group by plate
-  const byPlate: Record<string, any[]> = {};
+  const byPlate: any = {};
   sorted.forEach(e => {
     if (!byPlate[e.plate]) byPlate[e.plate] = [];
     byPlate[e.plate].push(e);
@@ -18,14 +16,13 @@ export function sessionizeEvents(events: any[]) {
   const unlinkedParking: any[] = [];
   let sessionId = 0;
 
-  Object.entries(byPlate).forEach(([plate, plateEvents]) => {
+  Object.entries(byPlate).forEach(([plate, plateEvents]: any) => {
     const gateEvents = plateEvents.filter((e: any) => e.location === "NORTH_GATE" || e.location === "SOUTH_GATE");
     const parkingEvents = plateEvents.filter((e: any) => e.location.startsWith("PARKING_"));
 
-    let usedParkingIds = new Set<string>();
-    let usedGateIds = new Set<string>();
+    let usedParkingIds = new Set();
+    let usedGateIds = new Set();
 
-    // Find IN events
     const inEvents = gateEvents.filter((e: any) => e.direction === "IN");
     const outEvents = gateEvents.filter((e: any) => e.direction === "OUT");
 
@@ -34,7 +31,6 @@ export function sessionizeEvents(events: any[]) {
 
       const inTime = new Date(inEvent.timestamp).getTime();
 
-      // Find first OUT after this IN
       const outEvent = outEvents.find((o: any) => {
         const oTime = new Date(o.timestamp).getTime();
         return oTime > inTime && !usedGateIds.has(o.id);
@@ -42,11 +38,9 @@ export function sessionizeEvents(events: any[]) {
 
       const outTime = outEvent ? new Date(outEvent.timestamp).getTime() : null;
 
-      // Check for stale
       const now = Date.now();
       const isStale = !outEvent && (now - inTime) > MAX_SESSION_HOURS * 3600000;
 
-      // Find parking events between IN and OUT (with tolerance)
       const sessionParkingEvents = parkingEvents.filter((p: any) => {
         const pTime = new Date(p.timestamp).getTime();
         const start = inTime - TOLERANCE_MS;
@@ -58,7 +52,6 @@ export function sessionizeEvents(events: any[]) {
       usedGateIds.add(inEvent.id);
       if (outEvent) usedGateIds.add(outEvent.id);
 
-      // Mark duplicate INs
       const duplicateIns = inEvents.filter((i: any) => {
         const iTime = new Date(i.timestamp).getTime();
         return i.id !== inEvent.id && !usedGateIds.has(i.id) && iTime > inTime && (outTime ? iTime < outTime : true);
@@ -97,7 +90,6 @@ export function sessionizeEvents(events: any[]) {
       });
     });
 
-    // Unlinked parking events
     parkingEvents.forEach((p: any) => {
       if (!usedParkingIds.has(p.id)) {
         unlinkedParking.push(p);

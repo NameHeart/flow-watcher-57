@@ -11,7 +11,7 @@ const MUTED = "#94a3b8";
 const SUCCESS = "#22c55e";
 const INFO = "#3b82f6";
 
-export function EnteredTrendChart({ data }: { data: any[] }) {
+export function EnteredTrendChart({ data }) {
   return (
     <ChartCard title="Entries by Gate">
       <ResponsiveContainer width="100%" height={200}>
@@ -28,7 +28,7 @@ export function EnteredTrendChart({ data }: { data: any[] }) {
   );
 }
 
-export function ParkedVsPassedChart({ data }: { data: any[] }) {
+export function ParkedVsPassedChart({ data }) {
   return (
     <ChartCard title="Parked vs Passed Through">
       <ResponsiveContainer width="100%" height={200}>
@@ -45,14 +45,14 @@ export function ParkedVsPassedChart({ data }: { data: any[] }) {
   );
 }
 
-export function FlowDistributionChart({ data }: { data: any[] }) {
+export function FlowDistributionChart({ data }) {
   const colors = [GOLD, DARK, GOLD_LIGHT, MUTED];
   return (
     <ChartCard title="Flow Pattern Distribution">
       <ResponsiveContainer width="100%" height={200}>
         <PieChart>
-          <Pie data={data} dataKey="total" nameKey="pattern" cx="50%" cy="50%" outerRadius={70} label={(e: any) => e.pattern} labelLine={false}>
-            {data.map((_: any, i: number) => (
+          <Pie data={data} dataKey="total" nameKey="pattern" cx="50%" cy="50%" outerRadius={70} label={e => e.pattern} labelLine={false}>
+            {data.map((_, i) => (
               <Cell key={i} fill={colors[i % colors.length]} />
             ))}
           </Pie>
@@ -64,7 +64,7 @@ export function FlowDistributionChart({ data }: { data: any[] }) {
   );
 }
 
-export function GateLoadChart({ data }: { data: any[] }) {
+export function GateLoadChart({ data }) {
   return (
     <ChartCard title="Gate Load (IN vs OUT)">
       <ResponsiveContainer width="100%" height={200}>
@@ -82,7 +82,7 @@ export function GateLoadChart({ data }: { data: any[] }) {
   );
 }
 
-function ChartCard({ title, children }: { title: string; children: any }) {
+function ChartCard({ title, children }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}

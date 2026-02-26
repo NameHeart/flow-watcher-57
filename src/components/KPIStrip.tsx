@@ -2,15 +2,15 @@ import { motion } from "framer-motion";
 import { Car, ParkingCircle, ArrowRightLeft, Users, Clock, TrendingUp } from "lucide-react";
 
 const kpiConfig = [
-  { key: "totalEntered", label: "Total Entered", icon: Car, format: (v: number) => v.toLocaleString() },
-  { key: "parked", label: "Parked", icon: ParkingCircle, format: (v: number) => v.toLocaleString() },
-  { key: "passedThrough", label: "Passed Through", icon: ArrowRightLeft, format: (v: number) => v.toLocaleString() },
-  { key: "currentlyInside", label: "Currently Inside", icon: Users, format: (v: number) => v.toLocaleString() },
-  { key: "avgParkedDuration", label: "Avg Duration", icon: Clock, format: (v: number) => `${v} min` },
-  { key: "peakHour", label: "Peak Hour", icon: TrendingUp, format: (v: any) => v },
+  { key: "totalEntered", label: "Total Entered", icon: Car, format: (v) => v.toLocaleString() },
+  { key: "parked", label: "Parked", icon: ParkingCircle, format: (v) => v.toLocaleString() },
+  { key: "passedThrough", label: "Passed Through", icon: ArrowRightLeft, format: (v) => v.toLocaleString() },
+  { key: "currentlyInside", label: "Currently Inside", icon: Users, format: (v) => v.toLocaleString() },
+  { key: "avgParkedDuration", label: "Avg Duration", icon: Clock, format: (v) => `${v} min` },
+  { key: "peakHour", label: "Peak Hour", icon: TrendingUp, format: (v) => v },
 ];
 
-export function KPIStrip({ kpis }: { kpis: any }) {
+export function KPIStrip({ kpis }) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
       {kpiConfig.map((cfg, i) => (

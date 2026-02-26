@@ -4,7 +4,7 @@ export function isAuthenticated() {
   return localStorage.getItem("auth_session") === "1";
 }
 
-export function login(username: string, password: string) {
+export function login(username, password) {
   if (username === "admin" && password === "admin123") {
     localStorage.setItem("auth_session", "1");
     return true;
@@ -16,7 +16,7 @@ export function logout() {
   localStorage.removeItem("auth_session");
 }
 
-export function getWatchlist(): string[] {
+export function getWatchlist() {
   try {
     return JSON.parse(localStorage.getItem("watchlist") || "[]");
   } catch {
@@ -24,7 +24,7 @@ export function getWatchlist(): string[] {
   }
 }
 
-export function addToWatchlist(plate: string) {
+export function addToWatchlist(plate) {
   const list = getWatchlist();
   if (!list.includes(plate)) {
     list.push(plate);
@@ -32,11 +32,11 @@ export function addToWatchlist(plate: string) {
   }
 }
 
-export function removeFromWatchlist(plate: string) {
+export function removeFromWatchlist(plate) {
   const list = getWatchlist().filter(p => p !== plate);
   localStorage.setItem("watchlist", JSON.stringify(list));
 }
 
-export function isOnWatchlist(plate: string) {
+export function isOnWatchlist(plate) {
   return getWatchlist().includes(plate);
 }
