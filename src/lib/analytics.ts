@@ -118,6 +118,21 @@ export function computeParkingLoad(events: any[]) {
   return { total: parking1 + parking2, parking1, parking2 };
 }
 
+export function computeVehicleTypeByDirection(events: any[]) {
+  const byType: any = {};
+
+  events.forEach(e => {
+    const t = e.vehicleType || "Unknown";
+    if (!byType[t]) byType[t] = { type: t, inCount: 0, outCount: 0, parkingCount: 0, total: 0 };
+    byType[t].total++;
+    if (e.locationType === "GATE" && e.direction === "IN") byType[t].inCount++;
+    else if (e.locationType === "GATE" && e.direction === "OUT") byType[t].outCount++;
+    else if (e.locationType === "PARKING") byType[t].parkingCount++;
+  });
+
+  return Object.values(byType).sort((a: any, b: any) => b.total - a.total);
+}
+
 export function computeFlowDistribution(sessions: any[]) {
   const flows = {};
 

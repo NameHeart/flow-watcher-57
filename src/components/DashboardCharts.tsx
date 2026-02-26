@@ -48,25 +48,6 @@ export function ParkingTrendChart({ data }) {
   );
 }
 
-export function GateComparisonChart({ data }) {
-  return (
-    <ChartCard title="Gate Comparison (IN)">
-      <ResponsiveContainer width="100%" height={200}>
-        <AreaChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(40, 15%, 90%)" />
-          <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-          <YAxis tick={{ fontSize: 10 }} width={30} />
-          <RTooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(40,15%,90%)", fontSize: 12 }} />
-          <Area type="monotone" dataKey="gateA_in" stroke={GOLD} fill={GOLD} fillOpacity={0.5} name="Gate A" />
-          <Area type="monotone" dataKey="gateB_in" stroke={DARK} fill={DARK} fillOpacity={0.3} name="Gate B" />
-          <Area type="monotone" dataKey="gateC_in" stroke={INFO} fill={INFO} fillOpacity={0.3} name="Gate C" />
-          <Legend wrapperStyle={{ fontSize: 10 }} />
-        </AreaChart>
-      </ResponsiveContainer>
-    </ChartCard>
-  );
-}
-
 export function GateLoadChart({ data }) {
   return (
     <ChartCard title="Gate Load (IN vs OUT)">
@@ -85,35 +66,32 @@ export function GateLoadChart({ data }) {
   );
 }
 
-export function ParkingLoadCard({ data }) {
+export function VehicleTypeChart({ data }) {
   return (
-    <ChartCard title="Parking Volume">
-      <div className="flex items-center justify-center gap-6 py-4">
-        <div className="text-center">
-          <div className="font-display text-3xl font-bold text-primary">{data.total}</div>
-          <div className="text-xs text-muted-foreground mt-1">Total Detections</div>
-        </div>
-        <div className="w-px h-12 bg-border" />
-        <div className="text-center">
-          <div className="font-display text-lg font-semibold">{data.parking1}</div>
-          <div className="text-[10px] text-muted-foreground">Camera 1</div>
-        </div>
-        <div className="text-center">
-          <div className="font-display text-lg font-semibold">{data.parking2}</div>
-          <div className="text-[10px] text-muted-foreground">Camera 2</div>
-        </div>
-      </div>
+    <ChartCard title="Vehicle Type Distribution">
+      <ResponsiveContainer width="100%" height={200}>
+        <BarChart data={data} layout="vertical">
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(40, 15%, 90%)" />
+          <XAxis type="number" tick={{ fontSize: 10 }} />
+          <YAxis dataKey="type" type="category" tick={{ fontSize: 10 }} width={70} />
+          <RTooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(40,15%,90%)", fontSize: 12 }} />
+          <Bar dataKey="inCount" fill={SUCCESS} name="Gate IN" radius={[0, 4, 4, 0]} />
+          <Bar dataKey="outCount" fill={INFO} name="Gate OUT" radius={[0, 4, 4, 0]} />
+          <Bar dataKey="parkingCount" fill={GOLD} name="Parking" radius={[0, 4, 4, 0]} />
+          <Legend wrapperStyle={{ fontSize: 10 }} />
+        </BarChart>
+      </ResponsiveContainer>
     </ChartCard>
   );
 }
 
-export function FlowDistributionChart({ data }) {
-  const colors = [GOLD, DARK, GOLD_LIGHT, MUTED, SUCCESS, INFO, WARN];
+export function VehicleTypeDonutChart({ data }) {
+  const colors = [GOLD, DARK, SUCCESS, INFO, GOLD_LIGHT, MUTED, WARN];
   return (
-    <ChartCard title="Flow Pattern Distribution">
+    <ChartCard title="Vehicle Type Split">
       <ResponsiveContainer width="100%" height={200}>
         <PieChart>
-          <Pie data={data} dataKey="total" nameKey="pattern" cx="50%" cy="50%" outerRadius={70} label={e => e.pattern} labelLine={false}>
+          <Pie data={data} dataKey="total" nameKey="type" cx="50%" cy="50%" innerRadius={40} outerRadius={70} label={e => e.type} labelLine={false}>
             {data.map((_, i) => (
               <Cell key={i} fill={colors[i % colors.length]} />
             ))}

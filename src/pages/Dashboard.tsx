@@ -3,8 +3,8 @@ import { Layout } from "@/components/Layout";
 import { KPIStrip } from "@/components/KPIStrip";
 import { FlowMap } from "@/components/FlowMap";
 import {
-  GateInOutTrendChart, ParkingTrendChart, GateComparisonChart,
-  GateLoadChart, ParkingLoadCard, FlowDistributionChart
+  GateInOutTrendChart, ParkingTrendChart,
+  GateLoadChart, VehicleTypeChart, VehicleTypeDonutChart
 } from "@/components/DashboardCharts";
 import { SessionsTable } from "@/components/SessionsTable";
 import { LiveEventStream } from "@/components/LiveEventStream";
@@ -23,7 +23,7 @@ const Dashboard = () => {
   const { events } = useEvents(timeRange);
   const { sessions, unlinkedParking } = useSessions(events);
   const granularity = timeRange === "today" ? "hourly" : "daily";
-  const { kpis, gateTrends, parkingTrends, gateLoad, parkingLoad, flowDist, alerts } = useInsights(sessions, events, unlinkedParking, granularity);
+  const { kpis, gateTrends, parkingTrends, gateLoad, flowDist, alerts, vehicleTypeByDirection } = useInsights(sessions, events, unlinkedParking, granularity);
   const { isLive, liveEvents, toggleLive } = useLiveMode();
   const [inspectIdentity, setInspectIdentity] = useState(null);
   const [liveOpen, setLiveOpen] = useState(false);
@@ -57,16 +57,13 @@ const Dashboard = () => {
               <GateInOutTrendChart data={gateTrends} />
               <ParkingTrendChart data={parkingTrends} />
             </div>
-            {/* Gate load + parking */}
+            {/* Gate load + Vehicle Type */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <GateLoadChart data={gateLoad} />
-              <ParkingLoadCard data={parkingLoad} />
+              <VehicleTypeDonutChart data={vehicleTypeByDirection} />
             </div>
-            {/* Gate comparison + flow distribution */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <GateComparisonChart data={gateTrends} />
-              <FlowDistributionChart data={flowDist} />
-            </div>
+            {/* Vehicle Type IN vs OUT */}
+            <VehicleTypeChart data={vehicleTypeByDirection} />
             <FlowMap flowDist={flowDist} />
             <SessionsTable sessions={sessions} onSelectSession={handleSelectSession} />
           </div>
