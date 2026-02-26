@@ -87,20 +87,75 @@ export function VehicleTypeChart({ data }) {
 }
 
 export function VehicleTypeDonutChart({ data }) {
-  const colors = [GOLD, DARK, SUCCESS, INFO, GOLD_LIGHT, MUTED, WARN];
+  const PALETTE = [
+    "hsl(43, 73%, 52%)",   // Gold
+    "hsl(220, 20%, 12%)",  // Dark navy
+    "hsl(152, 50%, 42%)",  // Emerald
+    "hsl(210, 65%, 52%)",  // Blue
+    "hsl(43, 40%, 70%)",   // Soft gold
+    "hsl(220, 10%, 46%)",  // Gray
+    "hsl(38, 70%, 50%)",   // Warm amber
+  ];
+  const total = data?.reduce((sum, d) => sum + d.total, 0) || 0;
+
+  const renderCustomTooltip = ({ active, payload }) => {
+    if (!active || !payload?.length) return null;
+    const item = payload[0];
+    const pct = total > 0 ? ((item.value / total) * 100).toFixed(1) : 0;
+    return (
+      <div className="rounded-lg border bg-card px-3 py-2 shadow-lg text-xs">
+        <div className="font-semibold text-foreground">{item.name}</div>
+        <div className="text-muted-foreground mt-0.5">Count: <span className="font-medium text-foreground">{item.value.toLocaleString()}</span></div>
+        <div className="text-muted-foreground">{pct}% of total</div>
+      </div>
+    );
+  };
+
   return (
     <ChartCard title="Vehicle Type Split">
-      <ResponsiveContainer width="100%" height={200}>
-        <PieChart>
-          <Pie data={data} dataKey="total" nameKey="type" cx="50%" cy="50%" innerRadius={40} outerRadius={70} label={e => e.type} labelLine={false}>
-            {data.map((_, i) => (
-              <Cell key={i} fill={colors[i % colors.length]} />
-            ))}
-          </Pie>
-          <RTooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(40,15%,90%)", fontSize: 12 }} />
-          <Legend wrapperStyle={{ fontSize: 10 }} />
-        </PieChart>
-      </ResponsiveContainer>
+      <div className="flex flex-col items-center gap-3">
+        <div className="relative">
+          <ResponsiveContainer width={180} height={180}>
+            <PieChart>
+              <Pie
+                data={data}
+                dataKey="total"
+                nameKey="type"
+                cx="50%"
+                cy="50%"
+                innerRadius={55}
+                outerRadius={80}
+                paddingAngle={2}
+                stroke="none"
+              >
+                {data?.map((_, i) => (
+                  <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
+                ))}
+              </Pie>
+              <RTooltip content={renderCustomTooltip} />
+            </PieChart>
+          </ResponsiveContainer>
+          {/* Center label */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Total</span>
+            <span className="font-display text-xl font-bold text-foreground">{total.toLocaleString()}</span>
+            <span className="text-[10px] text-muted-foreground">Vehicles</span>
+          </div>
+        </div>
+        {/* Legend */}
+        <div className="flex flex-wrap justify-center gap-x-3 gap-y-1.5 px-2">
+          {data?.map((d, i) => {
+            const pct = total > 0 ? ((d.total / total) * 100).toFixed(0) : 0;
+            return (
+              <div key={d.type} className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap">
+                <span className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PALETTE[i % PALETTE.length] }} />
+                <span>{d.type}</span>
+                <span className="text-[10px] opacity-70">({pct}%)</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </ChartCard>
   );
 }
