@@ -67,17 +67,18 @@ export function GateLoadChart({ data }) {
 }
 
 export function VehicleTypeChart({ data }) {
+  const chartHeight = Math.max(220, (data?.length || 0) * 32 + 40);
   return (
     <ChartCard title="Vehicle Type Distribution">
-      <ResponsiveContainer width="100%" height={200}>
-        <BarChart data={data} layout="vertical">
+      <ResponsiveContainer width="100%" height={chartHeight}>
+        <BarChart data={data} layout="vertical" barCategoryGap="20%">
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(40, 15%, 90%)" />
           <XAxis type="number" tick={{ fontSize: 10 }} />
-          <YAxis dataKey="type" type="category" tick={{ fontSize: 10 }} width={70} />
+          <YAxis dataKey="type" type="category" tick={{ fontSize: 10 }} width={75} />
           <RTooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(40,15%,90%)", fontSize: 12 }} />
-          <Bar dataKey="inCount" fill={SUCCESS} name="Gate IN" radius={[0, 4, 4, 0]} />
-          <Bar dataKey="outCount" fill={INFO} name="Gate OUT" radius={[0, 4, 4, 0]} />
-          <Bar dataKey="parkingCount" fill={GOLD} name="Parking" radius={[0, 4, 4, 0]} />
+          <Bar dataKey="inCount" stackId="a" fill={SUCCESS} name="Gate IN" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="outCount" stackId="a" fill={INFO} name="Gate OUT" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="parkingCount" stackId="a" fill={GOLD} name="Parking" radius={[0, 4, 4, 0]} />
           <Legend wrapperStyle={{ fontSize: 10 }} />
         </BarChart>
       </ResponsiveContainer>
